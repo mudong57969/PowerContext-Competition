@@ -16,14 +16,43 @@
 
 from __future__ import annotations
 
-from sqlalchemy import select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from powercontext.builtin.persistence.cursors import SourceCursorRepository
 from powercontext.builtin.persistence.database import AsyncDatabase
 from powercontext.builtin.persistence.processing_intents import ArtifactProcessingIntentRepository
 from powercontext.builtin.persistence.supervision import ArtifactProcessingFence, ArtifactProcessingLeaseRepository
-from powercontext.builtin.persistence.tables import PROFILE_POLICIES_TABLE, SOURCE_JOURNAL_HEADS_TABLE
+from powercontext.builtin.persistence.tables import PROFILE_POLICIES_TABLE, SOURCE_JOURNAL_HEADS_TABLE, SOURCES_TABLE
+
+
+async def source_count_scopes(
+    connection: AsyncConnection,
+    scope_ids: tuple[str, ...],
+    *,
+    binding_name: str,
+    threshold: int,
+) -> frozenset[str]:
+    """Count persisted identities after successful cursors, including lineage-only rows."""
+    if not scope_ids:
+        return frozenset()
+    cursors = await SourceCursorRepository().load_many(connection, scope_ids, binding_name)
+    positions = {scope: 0 if scope not in cursors else cursors[scope].cursor.sequence for scope in scope_ids}
+    table = SOURCES_TABLE
+    rows = await connection.scalars(
+        select(table.c.scope_id)
+        .where(
+            or_(
+                *(
+                    (table.c.scope_id == scope) & (table.c.journal_position > position)
+                    for scope, position in positions.items()
+                )
+            )
+        )
+        .group_by(table.c.scope_id)
+        .having(func.count() >= threshold)
+    )
+    return frozenset(rows)
 
 
 async def enabled_profile_scopes(connection: AsyncConnection, scope_ids: tuple[str, ...]) -> frozenset[str]:

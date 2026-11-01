@@ -117,6 +117,7 @@ class ArtifactProcessingBinding:
     # Only automatic admission is filtered; already accepted requests retain
     # their own Worker authorization and domain completion semantics.
     automatic_scope_filter: Callable[[AsyncConnection, tuple[str, ...]], Awaitable[frozenset[str]]] | None = None
+    source_count_filter: Callable[[AsyncConnection, tuple[str, ...]], Awaitable[frozenset[str]]] | None = None
 
     def __post_init__(self) -> None:
         if not self.binding_name or self.binding_name != self.binding_name.strip():
@@ -392,6 +393,7 @@ class _FamilyState:
     running: dict[str, _RunningWorker] = field(default_factory=dict)
     retries: dict[str, _RetryState] = field(default_factory=dict)
     requested_after: int = 0
+    count_after: int = 0
     scan_after: int = 0
     scan_generation: int = 0
     scan_in_progress: bool = False
@@ -652,10 +654,47 @@ class ArtifactProcessingSupervisor:
         state.automatic_next = not state.automatic_next
         if state.automatic_next:
             await self._discover_automatic(state)
+            await self._discover_count(state)
             await self._discover_requested(state)
         else:
             await self._discover_requested(state)
             await self._discover_automatic(state)
+            await self._discover_count(state)
+
+    async def _discover_count(self, state: _FamilyState) -> None:
+        eligible_scopes = state.binding.source_count_filter
+        capacity = self._fresh_capacity(state)
+        if eligible_scopes is None or capacity <= 0:
+            return
+        admitted: list[str] = []
+        async with self._database.transaction() as connection:
+            await self._leases.require_fence(connection, self._require_current_fence())
+            rows = await self._intents.scan(
+                connection,
+                state.binding.binding_name,
+                after_sequence=state.count_after,
+                limit=min(capacity, _DISCOVERY_PAGE_SIZE),
+                dirty_only=True,
+            )
+            candidates = tuple(
+                row.scope_id
+                for row in rows
+                if row.requested_generation == row.handled_generation
+                and row.scope_id not in state.queued
+                and row.scope_id not in state.running
+                and row.scope_id not in state.retries
+            )
+            eligible = await eligible_scopes(connection, candidates) if candidates else frozenset()
+            for scope in candidates:
+                if scope in eligible:
+                    await self._intents.request(connection, scope, state.binding.binding_name)
+                    admitted.append(scope)
+        # Publish the page frontier only after commit; failed admission is retried intact.
+        state.count_after = rows[-1].pending_sequence if len(rows) == min(capacity, _DISCOVERY_PAGE_SIZE) else 0
+        if state.count_after:
+            state.next_discovery_at = asyncio.get_running_loop().time() + _DISCOVERY_PAGE_DELAY_SECONDS
+        for scope in admitted:
+            self._enqueue(state, scope)
 
     async def _discover_requested(self, state: _FamilyState) -> None:
         capacity = self._fresh_capacity(state)
@@ -1058,6 +1097,7 @@ class ArtifactProcessingSupervisor:
             state.overflow_not_before = 0.0
             state.retries.clear()
             state.requested_after = state.scan_after = state.scan_generation = 0
+            state.count_after = 0
             state.scan_in_progress = False
             state.discovery_pending = True
 
@@ -1093,7 +1133,16 @@ class ArtifactProcessingSupervisor:
                 continue
             if state.next_schedule_at is not None:
                 deadlines.append(state.next_schedule_at)
-            if state.discovery_pending or state.scan_in_progress or not state.reconcile_complete or state.degraded:
+            if state.binding.source_count_filter is not None:
+                # Journal projections need not pass through the capture API's wake path.
+                deadlines.append(now + self._tick)
+            if (
+                state.discovery_pending
+                or state.count_after
+                or state.scan_in_progress
+                or not state.reconcile_complete
+                or state.degraded
+            ):
                 deadlines.append(max(now, state.next_discovery_at))
         return None if not deadlines else max(0.001, min(deadlines) - now)
 
@@ -1147,7 +1196,7 @@ def _schedule_deadline(
     trigger = CronTrigger.from_crontab(binding.cron, timezone=ZoneInfo(binding.timezone))
     first = trigger.get_next_fire_time(None, (checkpoint + timedelta(microseconds=1)).replace(tzinfo=UTC))
     if first is None:
-        return None, datetime.max.replace(tzinfo=None)
+        return None, datetime.max.replace(tzinfo=None)  # noqa: DTZ901 - database checkpoints are naive UTC
     first = first.astimezone(UTC).replace(tzinfo=None)
     if first > now:
         return None, first
@@ -1164,7 +1213,7 @@ def _schedule_deadline(
         else:
             hi = mid
     following = trigger.get_next_fire_time(None, (latest + timedelta(microseconds=1)).replace(tzinfo=UTC))
-    return latest, datetime.max.replace(tzinfo=None) if following is None else following.astimezone(UTC).replace(
+    return latest, datetime.max.replace(tzinfo=None) if following is None else following.astimezone(UTC).replace(  # noqa: DTZ901
         tzinfo=None
     )
 
