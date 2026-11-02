@@ -28,6 +28,12 @@ from powercontext.builtin.artifacts.memory.models import MemoryCitation, MemoryH
 from powercontext.builtin.artifacts.profile.models import Profile
 from powercontext.builtin.artifacts.topic_memory import TopicMemory, TopicMemorySearchHit
 from powercontext.builtin.runtime.errors import PreparedContextInvariantError
+from powercontext.builtin.runtime.evidence_selection import (
+    EvidenceDocument,
+    EvidenceFragment,
+    render_evidence,
+    select_evidence,
+)
 from powercontext.builtin.runtime.models import PrepareContextRequest, PreparedContext
 from powercontext.builtin.runtime.prepared_code import (
     CodeEvidenceRef,
@@ -106,6 +112,7 @@ class PreparedContextBuild:
     origins: tuple[PreparedContextOrigin, ...]
     omissions: PreparedContextOmissions = PreparedContextOmissions()
     code_origins: tuple[CodeEvidenceRef, ...] = ()
+    fragments: tuple[EvidenceFragment, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -211,6 +218,8 @@ class PreparedContextBuilder:
         profile_candidates: Sequence[PreparedProfileCandidate] = (),
         code_candidates: Sequence[PreparedCodeCandidate] = (),
     ) -> PreparedContextBuild:
+        if request.evidence_selection:
+            return self._build_evidence(request, memory_candidates)
         if request.include_code:
 
             def historical(history_request: PrepareContextRequest, entries: int) -> PreparedContextBuild:
@@ -277,6 +286,15 @@ class PreparedContextBuilder:
         counters because both go through :meth:`_select_entries`.
         """
 
+        if request.evidence_selection:
+            result = self._build_evidence(request, memory_candidates)
+            return RecallBudgetView(
+                max_bytes=request.max_bytes,
+                delivered_items=len(result.fragments),
+                truncated_items=result.omissions.truncated_items,
+                dropped_items=result.omissions.dropped_items,
+                unused_bytes=max(0, request.max_bytes - result.context.content_bytes),
+            )
         content, origins, omissions = self._select_entries(
             request=request,
             current_scope_id=current_scope_id,
@@ -292,6 +310,58 @@ class PreparedContextBuilder:
             truncated_items=omissions.truncated_items,
             dropped_items=omissions.dropped_items,
             unused_bytes=max(0, request.max_bytes - content_bytes),
+        )
+
+    def _build_evidence(
+        self, request: PrepareContextRequest, groups: Sequence[PreparedMemoryCandidates]
+    ) -> PreparedContextBuild:
+        if sum(len(group.hits) for group in groups) > self.memory_candidate_limit:
+            raise PreparedContextInvariantError("memory-candidate-limit")
+        documents = []
+        seen = set()
+        for group in groups:
+            if group.hits and not group.scope_id.strip():
+                raise PreparedContextInvariantError("evidence-scope-missing")
+            if group.hits and group.memory_ref is None:
+                raise PreparedContextInvariantError("memory-ref-missing")
+            for hit in group.hits:
+                if hit.memory_ref != group.memory_ref:
+                    raise PreparedContextInvariantError("memory-ref-mismatch")
+                address = MemoryEntryAddress(
+                    ArtifactAddress(scope_id=group.scope_id, artifact=hit.memory_ref),
+                    hit.entry_id,
+                    hit.entry_version_id,
+                )
+                identity = (
+                    group.scope_id,
+                    hit.memory_ref.family,
+                    hit.memory_ref.artifact_id,
+                    hit.memory_ref.revision,
+                    hit.entry_id,
+                    hit.entry_version_id,
+                )
+                if (
+                    identity in seen
+                    or not hit.text.strip()
+                    or not hit.entry_id.strip()
+                    or not hit.entry_version_id.strip()
+                ):
+                    continue
+                seen.add(identity)
+                documents.append(EvidenceDocument(address, hit.text))
+        selected = select_evidence(documents, request.query, request.max_bytes, entry_limit=self.entry_limit)
+        fragments = selected.fragments
+        omissions = PreparedContextOmissions(
+            dropped_items=selected.budget_dropped_items, dropped_no_fitting_truncation=selected.budget_dropped_items
+        )
+        if not fragments:
+            return PreparedContextBuild(context=self.empty(), origins=(), omissions=omissions)
+        content = render_evidence(fragments)
+        return PreparedContextBuild(
+            context=PreparedContext(status="ready", content=content, content_bytes=len(content.encode("utf-8"))),
+            origins=tuple(f.address for f in fragments),
+            fragments=fragments,
+            omissions=omissions,
         )
 
     def _select_entries(
@@ -475,7 +545,7 @@ class PreparedContextBuilder:
                 entry_version_id=hit.entry_version_id,
             )
             origin: PreparedContextOrigin = citation
-            rendered_citation = citation.model_dump(mode="json")
+            rendered_citation: dict[str, object] = citation.model_dump(mode="json")
             if scope_id is not None:
                 memory = ArtifactAddress(scope_id=scope_id, artifact=hit.memory_ref)
                 origin = MemoryEntryAddress(
@@ -520,7 +590,7 @@ class PreparedContextBuilder:
             if hit.snippet is not None:
                 content["snippet"] = hit.snippet
             origin: PreparedContextOrigin = hit.artifact_ref
-            citation = {"artifact_ref": hit.artifact_ref.model_dump(mode="json")}
+            citation: dict[str, object] = {"artifact_ref": hit.artifact_ref.model_dump(mode="json")}
             body = json.dumps(content, ensure_ascii=False, separators=(",", ":"))
             if scope_id is not None:
                 origin = ArtifactAddress(scope_id=scope_id, artifact=hit.artifact_ref)
