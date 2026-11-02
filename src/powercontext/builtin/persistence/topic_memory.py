@@ -50,6 +50,7 @@ from powercontext.builtin.artifacts.topic_memory import (
 from powercontext.builtin.artifacts.topic_memory.fusion import _fuse_topic_memory_rankings
 from powercontext.builtin.persistence.artifacts import ArtifactRepository
 from powercontext.builtin.persistence.errors import InvalidRepositoryArgumentError
+from powercontext.builtin.persistence.source_lifecycle import LIFECYCLE_HIDDEN_TOPICS
 from powercontext.builtin.persistence.supervision import database_utc_now
 from powercontext.builtin.persistence.tables import (
     ARTIFACT_HEADS_TABLE,
@@ -378,6 +379,9 @@ class TopicMemoryRepository:
             )
             .where(
                 TOPIC_MEMORY_ACTIVE_TOPICS_TABLE.c.scope_id == scope_id,
+                TOPIC_MEMORY_ACTIVE_TOPICS_TABLE.c.artifact_id.not_in(
+                    select(LIFECYCLE_HIDDEN_TOPICS.c.artifact_id).where(LIFECYCLE_HIDDEN_TOPICS.c.scope_id == scope_id)
+                ),
                 TOPIC_MEMORY_ACTIVE_TOPICS_TABLE.c.family == TopicMemory.family,
             )
         )

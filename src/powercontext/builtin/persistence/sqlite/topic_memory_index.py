@@ -152,7 +152,7 @@ _SEARCH_TOPIC_FTS_SQL = """
         SELECT artifact_id, revision, title, summary,
                bm25(pc_topic_memory_topic_fts) AS score, ({coverage}) AS coverage
         FROM pc_topic_memory_topic_fts
-        WHERE pc_topic_memory_topic_fts MATCH :query AND scope_id = :scope_id
+        WHERE pc_topic_memory_topic_fts MATCH :query AND scope_id = :scope_id AND artifact_id NOT IN (SELECT artifact_id FROM pc_source_lifecycle_hidden_topics WHERE scope_id = :scope_id)
     )
     SELECT artifact_id, revision, title, summary
     FROM scored
@@ -163,13 +163,13 @@ _SEARCH_TOPIC_FTS_SQL = """
 _COUNT_TOPIC_FTS_SQL = """
     SELECT count(*)
     FROM pc_topic_memory_topic_fts
-    WHERE pc_topic_memory_topic_fts MATCH :query AND scope_id = :scope_id
+    WHERE pc_topic_memory_topic_fts MATCH :query AND scope_id = :scope_id AND artifact_id NOT IN (SELECT artifact_id FROM pc_source_lifecycle_hidden_topics WHERE scope_id = :scope_id)
     """
 _COUNT_TOPIC_FTS_ELIGIBLE_SQL = """
     WITH scored AS (
         SELECT ({coverage}) AS coverage
         FROM pc_topic_memory_topic_fts
-        WHERE pc_topic_memory_topic_fts MATCH :query AND scope_id = :scope_id
+        WHERE pc_topic_memory_topic_fts MATCH :query AND scope_id = :scope_id AND artifact_id NOT IN (SELECT artifact_id FROM pc_source_lifecycle_hidden_topics WHERE scope_id = :scope_id)
     )
     SELECT count(*)
     FROM scored
@@ -180,7 +180,7 @@ _SEARCH_CHUNK_FTS_SQL = """
         SELECT artifact_id, revision, title, summary, chunk_ordinal, start_offset, chunk_text,
                bm25(pc_topic_memory_chunk_fts) AS score, ({coverage}) AS coverage
         FROM pc_topic_memory_chunk_fts
-        WHERE pc_topic_memory_chunk_fts MATCH :query AND scope_id = :scope_id
+        WHERE pc_topic_memory_chunk_fts MATCH :query AND scope_id = :scope_id AND artifact_id NOT IN (SELECT artifact_id FROM pc_source_lifecycle_hidden_topics WHERE scope_id = :scope_id)
     ), ranked AS (
         SELECT scored.*,
                row_number() OVER (
@@ -200,7 +200,7 @@ _COUNT_CHUNK_FTS_SQL = """
         SELECT artifact_id, revision, title, summary, chunk_ordinal, start_offset, chunk_text,
                bm25(pc_topic_memory_chunk_fts) AS score, ({coverage}) AS coverage
         FROM pc_topic_memory_chunk_fts
-        WHERE pc_topic_memory_chunk_fts MATCH :query AND scope_id = :scope_id
+        WHERE pc_topic_memory_chunk_fts MATCH :query AND scope_id = :scope_id AND artifact_id NOT IN (SELECT artifact_id FROM pc_source_lifecycle_hidden_topics WHERE scope_id = :scope_id)
     ), ranked AS (
         SELECT scored.*,
                row_number() OVER (
@@ -218,7 +218,7 @@ _COUNT_CHUNK_FTS_ELIGIBLE_SQL = """
         SELECT artifact_id, revision, chunk_ordinal,
                bm25(pc_topic_memory_chunk_fts) AS score, ({coverage}) AS coverage
         FROM pc_topic_memory_chunk_fts
-        WHERE pc_topic_memory_chunk_fts MATCH :query AND scope_id = :scope_id
+        WHERE pc_topic_memory_chunk_fts MATCH :query AND scope_id = :scope_id AND artifact_id NOT IN (SELECT artifact_id FROM pc_source_lifecycle_hidden_topics WHERE scope_id = :scope_id)
     ), ranked AS (
         SELECT scored.*,
                row_number() OVER (
@@ -253,7 +253,7 @@ _TOPIC_VECTOR_SEARCH_SQL = text(
         WHERE scope_id = :scope_id AND embedding MATCH :query_vector AND k = :neighbor_limit
           AND rowid IN (
               SELECT vector_id FROM pc_topic_memory_vector_topics
-              WHERE scope_id = :scope_id AND profile_fingerprint = :profile_fingerprint
+              WHERE scope_id = :scope_id AND profile_fingerprint = :profile_fingerprint AND artifact_id NOT IN (SELECT artifact_id FROM pc_source_lifecycle_hidden_topics WHERE scope_id = :scope_id)
           )
     )
     SELECT a.artifact_id, a.revision, a.title, a.summary, nearest.distance
@@ -273,7 +273,7 @@ _CHUNK_VECTOR_SEARCH_SQL = text(
         WHERE scope_id = :scope_id AND embedding MATCH :query_vector AND k = :neighbor_limit
           AND rowid IN (
               SELECT vector_id FROM pc_topic_memory_vector_chunks
-              WHERE scope_id = :scope_id AND profile_fingerprint = :profile_fingerprint
+              WHERE scope_id = :scope_id AND profile_fingerprint = :profile_fingerprint AND artifact_id NOT IN (SELECT artifact_id FROM pc_source_lifecycle_hidden_topics WHERE scope_id = :scope_id)
           )
     ), ranked AS (
         SELECT a.artifact_id, a.revision, a.title, a.summary,

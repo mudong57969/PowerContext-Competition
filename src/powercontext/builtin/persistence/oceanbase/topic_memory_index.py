@@ -53,6 +53,7 @@ from powercontext.builtin.artifacts.topic_memory import (
     TopicMemorySearchChannels,
     TopicMemorySearchRequest,
 )
+from powercontext.builtin.persistence.source_lifecycle import LIFECYCLE_HIDDEN_TOPICS
 from powercontext.builtin.persistence.tables import (
     TOPIC_MEMORY_ACTIVE_CHUNKS_TABLE,
     TOPIC_MEMORY_ACTIVE_TOPICS_TABLE,
@@ -91,7 +92,7 @@ WITH candidates AS (
     SELECT v.scope_id, v.artifact_id, v.revision,
            l2_distance(v.embedding, :query_vector) AS distance
     FROM pc_topic_memory_vector_topics AS v
-    WHERE v.scope_id = :scope_id
+    WHERE v.scope_id = :scope_id AND v.artifact_id NOT IN (SELECT artifact_id FROM pc_source_lifecycle_hidden_topics WHERE scope_id = :scope_id)
       AND v.profile_fingerprint = :profile_fingerprint
     ORDER BY l2_distance(v.embedding, :query_vector) APPROXIMATE
     LIMIT :candidate_limit
@@ -107,7 +108,7 @@ WITH neighbors AS (
     SELECT v.scope_id, v.artifact_id, v.revision, v.chunk_ordinal,
            l2_distance(v.embedding, :query_vector) AS distance
     FROM pc_topic_memory_vector_chunks AS v
-    WHERE v.scope_id = :scope_id
+    WHERE v.scope_id = :scope_id AND v.artifact_id NOT IN (SELECT artifact_id FROM pc_source_lifecycle_hidden_topics WHERE scope_id = :scope_id)
       AND v.profile_fingerprint = :profile_fingerprint
     ORDER BY l2_distance(v.embedding, :query_vector) APPROXIMATE
     LIMIT :neighbor_limit
@@ -185,6 +186,9 @@ class OceanBaseTopicMemoryFTSIndex:
             .select_from(TOPIC_MEMORY_ACTIVE_TOPICS_TABLE)
             .where(
                 TOPIC_MEMORY_ACTIVE_TOPICS_TABLE.c.scope_id == scope_id,
+                TOPIC_MEMORY_ACTIVE_TOPICS_TABLE.c.artifact_id.not_in(
+                    select(LIFECYCLE_HIDDEN_TOPICS.c.artifact_id).where(LIFECYCLE_HIDDEN_TOPICS.c.scope_id == scope_id)
+                ),
                 topic_score,
             )
         )
@@ -193,6 +197,9 @@ class OceanBaseTopicMemoryFTSIndex:
             .select_from(TOPIC_MEMORY_ACTIVE_TOPICS_TABLE)
             .where(
                 TOPIC_MEMORY_ACTIVE_TOPICS_TABLE.c.scope_id == scope_id,
+                TOPIC_MEMORY_ACTIVE_TOPICS_TABLE.c.artifact_id.not_in(
+                    select(LIFECYCLE_HIDDEN_TOPICS.c.artifact_id).where(LIFECYCLE_HIDDEN_TOPICS.c.scope_id == scope_id)
+                ),
                 topic_score,
                 topic_coverage,
             )
@@ -207,6 +214,11 @@ class OceanBaseTopicMemoryFTSIndex:
                 )
                 .where(
                     TOPIC_MEMORY_ACTIVE_TOPICS_TABLE.c.scope_id == scope_id,
+                    TOPIC_MEMORY_ACTIVE_TOPICS_TABLE.c.artifact_id.not_in(
+                        select(LIFECYCLE_HIDDEN_TOPICS.c.artifact_id).where(
+                            LIFECYCLE_HIDDEN_TOPICS.c.scope_id == scope_id
+                        )
+                    ),
                     topic_score,
                     topic_coverage,
                 )
@@ -258,6 +270,9 @@ class OceanBaseTopicMemoryFTSIndex:
             )
             .where(
                 TOPIC_MEMORY_ACTIVE_CHUNKS_TABLE.c.scope_id == scope_id,
+                TOPIC_MEMORY_ACTIVE_CHUNKS_TABLE.c.artifact_id.not_in(
+                    select(LIFECYCLE_HIDDEN_TOPICS.c.artifact_id).where(LIFECYCLE_HIDDEN_TOPICS.c.scope_id == scope_id)
+                ),
                 chunk_score,
             )
             .subquery()

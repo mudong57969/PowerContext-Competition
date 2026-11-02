@@ -589,6 +589,7 @@ async def open_builtin_runtime(
             BuiltinRuntime(
                 code_service=await resources.enter_async_context(open_code_service(config.code, config.database)),
                 provider=contexts,
+                lifecycle_database=contexts.database,
                 capabilities=RuntimeCapabilities(
                     memory_extraction=contexts.memory_extraction,
                     experience_generation=contexts.experience_generation,
@@ -669,6 +670,7 @@ async def open_builtin_runtime(
         if config.runtime.memory_rerank_enabled and configured_reranker is None:
             raise BuiltinConfigurationError("memory-reranker")
         _require_decision_backend(config.runtime, configured_decision)
+        await runtime.lifecycle.recover()
         yield runtime
 
 

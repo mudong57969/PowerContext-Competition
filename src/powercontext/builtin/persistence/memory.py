@@ -59,6 +59,7 @@ from powercontext.builtin.persistence.codec import dump_model, load_model, store
 from powercontext.builtin.persistence.database import AsyncDatabase
 from powercontext.builtin.persistence.errors import RepositoryNotFoundError
 from powercontext.builtin.persistence.memory_index import MemoryIndex, NoMemoryIndex
+from powercontext.builtin.persistence.source_lifecycle import retained_memory_entry_ids
 from powercontext.builtin.persistence.tables import (
     ARTIFACT_HEADS_TABLE,
     ARTIFACT_TAGS_TABLE,
@@ -485,6 +486,11 @@ class RelationalMemoryBackend:
 
     async def _commit(self, connection: AsyncConnection, value: MemoryCommit) -> Memory:
         _validate_commit(value)
+        compacted = {change.entry_id for change in value.memory.content.changes if change.op == "compact"}
+        if compacted and compacted & await retained_memory_entry_ids(
+            connection, self._scope_id, value.memory.artifact_id
+        ):
+            raise CapabilityNotSupportedError("compaction-lifecycle-conflict")
         draft = _MemoryDraft(
             content=value.memory.content,
             sources=value.memory.lineage.sources,

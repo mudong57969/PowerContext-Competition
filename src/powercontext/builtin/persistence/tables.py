@@ -1015,7 +1015,22 @@ MEMORY_ENTRY_HEADS_TABLE = Table(
 
 MEMORY_TABLES = (MEMORY_ENTRY_VERSIONS_TABLE, MEMORY_ENTRY_HEADS_TABLE)
 
+LIFECYCLE_GRAPHS = Table(
+    "pc_source_lifecycle_graphs",
+    SHARED_METADATA,
+    Column("scope_id", identity_string(MAX_SCOPE_ID_LENGTH), primary_key=True),
+    Column("graph", _entry_text_type(), nullable=False),
+)
+LIFECYCLE_HIDDEN_TOPICS = Table(
+    "pc_source_lifecycle_hidden_topics",
+    SHARED_METADATA,
+    Column("scope_id", identity_string(MAX_SCOPE_ID_LENGTH), primary_key=True),
+    Column("artifact_id", identity_string(MAX_ARTIFACT_ID_LENGTH), primary_key=True),
+)
+LIFECYCLE_TABLES = (LIFECYCLE_GRAPHS, LIFECYCLE_HIDDEN_TOPICS)
+
 TOPIC_MEMORY_TABLES = (
+    *LIFECYCLE_TABLES,
     TOPIC_MEMORY_RETRIEVAL_SHAPE_TABLE,
     TOPIC_MEMORY_REVISION_PUBLICATIONS_TABLE,
     TOPIC_MEMORY_ACTIVE_TOPICS_TABLE,
