@@ -239,28 +239,8 @@ _CONCEPTS = (
 )
 
 
-def _stem(word: str) -> str:
-    if word.endswith("ies") and len(word) > 5:
-        return word[:-3] + "y"
-    if word.endswith("s") and not word.endswith(("ss", "us")) and len(word) > 4:
-        return word[:-1]
-    return word
-
-
 def _terms(text: str) -> list[str]:
     return [_stem(word) for word in _WORDS.findall(text.lower()) if word not in _STOP]
-
-
-def _queries(question: str) -> tuple[str, ...]:
-    words = list(dict.fromkeys(word for word in _WORDS.findall(question.lower()) if word not in _STOP))
-    # Avoid the native multi-term admission gate rejecting synonym-only pages.
-    queries = [" ".join(words)]
-    queries.extend(" ".join(words[i : i + 2]) for i in range(0, min(len(words), 16), 2))
-    lowered = " ".join(_WORDS.findall(question.lower()))
-    for concept in _CONCEPTS:
-        if any(re.search(r"\b" + re.escape(alias) + r"\b", lowered) for alias in concept):
-            queries.extend(concept)
-    return tuple(dict.fromkeys(query for query in queries if query))
 
 
 @dataclass(frozen=True)
@@ -269,10 +249,293 @@ class _Candidate:
     source_id: str
     text: str
     retrieval_score: float
+    document_id: str = ""
+
+
+_COMMON_QUERY_NOUNS = frozenset(("company", "year", "statement", "page", "input", "report", "result", "category"))
+_QUERY_LIMIT = 16
+_FOCUS_STOP = frozenset([
+    "much",
+    "reported",
+    "reporting",
+    "report",
+    "statement",
+    "statements",
+    "page",
+    "pages",
+    "filed",
+    "supply",
+    "inputs",
+    "input",
+    "estimate",
+    "analyst",
+    "perspective",
+    "adjusted",
+    "details",
+    "shown",
+    "question",
+    "answer",
+    "use",
+    "using",
+    "based",
+    "according",
+    "calculate",
+    "calculation",
+    "rounding",
+    "please",
+    "outline",
+    "historical",
+    "strategic",
+    "context",
+    "general",
+    "corporate",
+    "narrative",
+    "overview",
+    "qualitative",
+    "aspects",
+    "background",
+    "discussion",
+    "outlook",
+    "broad",
+    "directional",
+    "regional",
+    "patterns",
+    "multiple",
+    "categories",
+    "explain",
+    "company",
+    "companies",
+    "financial",
+    "year",
+    "years",
+])
+_ACCOUNTS = (
+    ("depreciation amortization", ("depreciation amortization", "d&a"), r"\bd\s*(?:&|and)\s*a\b"),
+    ("property plant equipment", ("property plant equipment", "property equipment", "pp&e"), r"\bpp\s*(?:&|and)\s*e\b"),
+    ("earnings per share", ("earnings per share", "eps"), r"\beps\b"),
+    (
+        "capital expenditures",
+        ("capital expenditures", "capital expenditure", "additions to property", "capex"),
+        r"\bcapex\b",
+    ),
+    (
+        "operating income depreciation amortization",
+        ("operating income", "depreciation amortization", "ebitda"),
+        r"\bebitda\b",
+    ),
+    ("free cash flow", ("free cash flow", "fcf"), r"\bfcf\b"),
+)
+_FINANCE = frozenset([
+    "liability",
+    "asset",
+    "equity",
+    "pension",
+    "obligation",
+    "expense",
+    "margin",
+    "tax",
+    "interest",
+    "dividend",
+    "depreciation",
+    "amortization",
+    "earning",
+    "share",
+    "property",
+    "plant",
+    "equipment",
+    "receivable",
+    "payable",
+    "inventory",
+    "contract",
+    "lease",
+    "discount",
+    "gross",
+    "net",
+    "cost",
+    "goodwill",
+    "impairment",
+    "commitment",
+    "contingency",
+    "unearned",
+    "deferred",
+    "pretax",
+    "research",
+    "development",
+    "revenue",
+    "income",
+    "expenditure",
+    "cash",
+    "operating",
+    "debt",
+])
+
+
+def _stem(word: str) -> str:
+    if word.endswith("ies") and len(word) > 5:
+        return word[:-3] + "y"
+    if word.endswith(("sses", "shes", "ches", "xes", "zes")) and len(word) > 5:
+        return word[:-2]
+    if word.endswith("s") and not word.endswith(("ss", "us", "is")) and len(word) > 4:
+        return word[:-1]
+    return word
+
+
+def _word_forms(word: str) -> tuple[str, ...]:
+    singular = _stem(word)
+    if singular.endswith("y") and len(singular) > 2 and singular[-2] not in "aeiou":
+        plural = singular[:-1] + "ies"
+    elif singular.endswith(("s", "x", "z", "ch", "sh")):
+        plural = singular + "es"
+    else:
+        plural = singular + "s"
+    return tuple(dict.fromkeys((word, singular, plural)))
+
+
+def _normalize_finance(text: str) -> str:
+    for canonical, _aliases, pattern in _ACCOUNTS:
+        text = re.sub(pattern, canonical, text, flags=re.IGNORECASE)
+    return text
+
+
+def _focused(text: str) -> str:
+    words = [w for w in _WORDS.findall(_normalize_finance(text).lower()) if w not in _STOP]
+    focus = [w for w in words if w not in _FOCUS_STOP]
+    return " ".join(focus or words)
+
+
+def _has_phrase(words: Sequence[str], phrase: str) -> bool:
+    return (" " + " ".join(words) + " ").find(" " + " ".join(_terms(phrase)) + " ") >= 0
+
+
+def _common_probes(question: str) -> tuple[str, ...]:
+    # Keep generic nouns out of finance focus, but retain their recall inflections.
+    words = [word for word in _WORDS.findall(question.lower()) if word not in _STOP]
+    if any(_stem(word) in _FINANCE for word in words):
+        return ()
+    return tuple(" ".join(_word_forms(word)[:2]) for word in words if _stem(word) in _COMMON_QUERY_NOUNS)
+
+
+def _account_queries(question: str, tokens: Sequence[str]) -> tuple[str, ...]:
+    probes = []
+    for _canonical, aliases, pattern in _ACCOUNTS:
+        if re.search(pattern, question, re.I) or any(
+            _has_phrase(tokens, alias) for alias in aliases if len(_terms(alias)) > 1
+        ):
+            probes.extend((*aliases[:2], aliases[-1]))
+    return tuple(probes)
+
+
+def _concept_queries(tokens: Sequence[str]) -> tuple[str, ...]:
+    return tuple(
+        alias for concept in _CONCEPTS if any(_has_phrase(tokens, term) for term in concept) for alias in concept
+    )
+
+
+def _tail_probe(question: str, keywords: Sequence[str], aliases: Sequence[str]) -> str:
+    # Reserve one probe for a selected late financial term not covered by aliases.
+    words = list(dict.fromkeys(word for word in _WORDS.findall(question.lower()) if word not in _STOP))
+    tail = set(words[16:])
+    represented = set(_terms(" ".join(aliases)))
+    word = next(
+        (word for word in keywords if word in tail and _stem(word) in _FINANCE and _stem(word) not in represented),
+        "",
+    )
+    return " ".join(_word_forms(word)[:2]) if word else ""
+
+
+def _queries(question: str) -> tuple[str, ...]:
+    queries: list[str] = []
+    seen: set[str] = set()
+
+    def add(q: str) -> None:
+        key = " ".join(q.split()).casefold()
+        if key and key not in seen and len(queries) < _QUERY_LIMIT:
+            seen.add(key)
+            queries.append(q)
+
+    add(question.strip())
+    focused = _focused(question)
+    add(focused)
+    tokens = _terms(_normalize_finance(question))
+    accounts = _account_queries(question, tokens)
+    concepts = _concept_queries(tokens)
+    words = list(dict.fromkeys(_WORDS.findall(focused)))
+    chosen = sorted(enumerate(words), key=lambda item: (-int(_stem(item[1]) in _FINANCE), -len(item[1]), item[0]))[:6]
+    add(_tail_probe(question, [word for _, word in chosen], (*accounts, *concepts)))
+    for probe in (*accounts, *concepts):
+        add(probe)
+    for _, word in chosen:
+        if word.isdigit():
+            continue
+        add(" ".join(_word_forms(word)[:2]))
+    for probe in _common_probes(question):
+        add(probe)
+    return tuple(queries)
+
+
+def _identity_matches(candidate: _Candidate, query: str) -> int:
+    ignored = (
+        _FOCUS_STOP
+        | _FINANCE
+        | frozenset(("annual", "inc", "corp", "corporation", "limited", "group", "form", "sec", "document"))
+    )
+    wanted = {t for t in _terms(query) if len(t) >= 3 and not t.isdigit() and t not in ignored}
+    return len(wanted.intersection(_terms(candidate.document_id)))
+
+
+_VALUE_GROUPS = (
+    ("operating income",),
+    ("depreciation amortization",),
+    ("earnings per share",),
+    ("property plant equipment", "property equipment"),
+    ("capital expenditure", "additions to property"),
+    ("net income",),
+    ("current assets",),
+    ("current liabilities",),
+)
+
+
+def _value_anchors(candidate: _Candidate, question: str) -> int:
+    q = _terms(_normalize_finance(question))
+    text = _terms(candidate.text)
+    found = 0
+    for group in _VALUE_GROUPS:
+        if not any(_has_phrase(q, alias) for alias in group):
+            continue
+        matched = False
+        for alias in group:
+            terms = _terms(alias)
+            for i in range(len(text) - len(terms) + 1):
+                if text[i : i + len(terms)] == terms and any(
+                    t.isdigit() and not 1900 <= int(t) <= 2100 for t in text[i + len(terms) : i + len(terms) + 6]
+                ):
+                    matched = True
+                    break
+            if matched:
+                break
+        found += matched
+    return found
 
 
 def _rank(candidates: Sequence[_Candidate], question: str) -> list[_Candidate]:
+    # Explicit issuer identity and nearby account values precede body relevance.
+    # The original body scoring coefficients and native candidate cap are unchanged.
+    order = _rank_body(candidates, _focused(question))
+    return sorted(order, key=lambda c: (-_identity_matches(c, question), -_value_anchors(c, question)))
+
+
+def _matched_concepts(text: str) -> frozenset[tuple[str, ...]]:
+    def normalized(value: str) -> str:
+        words = _WORDS.findall(_normalize_finance(value).lower())
+        return " " + " ".join(word for word in words if word not in _STOP) + " "
+
+    body = normalized(text)
+    return frozenset(concept for concept in _CONCEPTS if any(normalized(alias) in body for alias in concept))
+
+
+def _rank_body(candidates: Sequence[_Candidate], question: str) -> list[_Candidate]:
     query = set(_terms(question))
+    topics = _matched_concepts(question)
     expanded = set(query)
     lowered = " ".join(_WORDS.findall(question.lower()))
     for concept in _CONCEPTS:
@@ -309,12 +572,7 @@ def _rank(candidates: Sequence[_Candidate], question: str) -> list[_Candidate]:
             ),
             default=0,
         )
-        phrases = sum(
-            1
-            for concept in _CONCEPTS
-            if any(alias in lowered for alias in concept)
-            and any(alias in candidates[index].text.lower() for alias in concept if " " in alias)
-        )
+        phrases = len(topics & _matched_concepts(candidates[index].text))
         return relevance * (0.5 + coverage) + 2 * local + 0.5 * phrases + 0.01 * candidates[index].retrieval_score
 
     return [candidates[i] for i in sorted(range(count), key=lambda i: (-score(i), candidates[i].source_id))]
@@ -358,6 +616,6 @@ async def search_pdf_pages(
         if record.state != "active" or len(pages) != 1 or pages[0].source_id in seen:
             continue
         seen.add(pages[0].source_id)
-        _, _, body = record.entry.text.partition("\n")
-        candidates.append(_Candidate(record.citation, pages[0].source_id, body, hit.score))
+        document_id, _, body = record.entry.text.partition("\n")
+        candidates.append(_Candidate(record.citation, pages[0].source_id, body, hit.score, document_id))
     return tuple(candidate.citation for candidate in _rank(candidates, question)[:limit])
