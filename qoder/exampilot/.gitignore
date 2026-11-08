@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Env & secrets
+.env
+*.env.local
+
+# Database files, backups and local identity data (never commit)
+*.sql
+*.db
+*.sqlite
+*.sqlite3
+.seekdb-data/
+evidence/backup_*/
+*.token
+local_identity*.json
+
+# Runtime data (seekdb dirs, uploads, logs)
+data/
+*.log
+backend/.seekdb-data/
+backend/uploads/
+
+# Temp / scratch
+*.tmp
+*.bak
+tmp/
+scratch/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Evidence artifacts are committed, but keep temp screenshots out
+evidence/screenshots/*.tmp.png

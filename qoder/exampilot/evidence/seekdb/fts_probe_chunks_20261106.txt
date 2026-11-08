@@ -1,0 +1,19 @@
+chunks: 13
+sample: (1, '# 数字集成电路 讲义')
+sample: (2, '## 第一章 MOS 器件')
+sample: (3, '### MOS 阈值电压 MOS 晶体管的阈值电压 VT 由栅氧化层厚度与衬底掺杂浓度决定。体效应会使阈值电压绝对值增大')
+Q='功耗': 0 rows
+Q='动态功耗': 1 rows
+   (9, '### 动态功耗 动态功耗 P = alpha * CL * VDD^2 * f')
+Q='动态功耗公式': 0 rows
+Q='阈值电压': 1 rows
+   (3, '### MOS 阈值电压 MOS 晶体管的阈值电压 VT 由栅氧化层厚度与衬底掺')
+Q='cmos': 2 rows
+   (5, '## 第二章 CMOS 反相器')
+   (6, '### CMOS VTC 与噪声容限 CMOS 反相器过渡区内两管同时饱和导通，')
+Q='MOS': 3 rows
+   (3, '### MOS 阈值电压 MOS 晶体管的阈值电压 VT 由栅氧化层厚度与衬底掺')
+   (2, '## 第一章 MOS 器件')
+   (4, '### MOS 工作区 NMOS 饱和区条件为 VGS >= VT 且 VDS ')
+Q='动态 功耗': 0 rows
+vars: (('ft_stopword_file', 'built-in'), ('innodb_ft_cache_size', '8000000'), ('innodb_ft_enable_diag_print', 'OFF'), ('innodb_ft_num_word_optimize', '2000'), ('innodb_ft_result_cache_limit', '2000000000'), ('innodb_ft_server_stopword_table', ''), ('innodb_ft_sort_pll_degree', '2'), ('innodb_ft_total_cache_size', '640000000'))

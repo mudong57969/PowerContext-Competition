@@ -1,0 +1,104 @@
+ExamPilot UAT2 修复后 — 真实浏览器端到端验收证据
+日期：2026-11-08
+环境：前端 vite dev server http://127.0.0.1:5173（HashRouter）；后端 127.0.0.1:8001（WSL，uvicorn app.main:app）；seekdb 生产库 test；PowerContext 真实读写。
+浏览器工具：Qoder browser-use MCP（真实 Chromium 页面，非模拟 DOM）。
+备注：所有 Token 一律脱敏（仅记录长度/前缀）；本节不出现任何完整 Token。
+
+=== 工具性说明（诚实披露） ===
+browser-use MCP 的 click 工具在本应用页面上多次报告“成功”但未产生网络请求（疑似坐标过期问题），
+故交互类按钮（确认/更正/保存/检索/交卷/重置身份等）改用 evaluate_script 执行真实 DOM 的
+element.click()（真实 DOM 点击 → 真实 React 事件 → 真实网络请求），并在每次点击后核对
+页面结果 + 网络请求 + 数据库落库。上传文件使用真实 <input type=file> 文件选择（非脚本注入）。
+
+=== 流程 A：新身份自动创建 ===
+- 打开 http://127.0.0.1:5173/ → 前端请求 /api/health、POST /api/sessions（匿名身份创建）、GET /api/sessions/me。
+- 创建得到会话 id 8529d15599004eef，token 43 字符（256-bit），仅存于 localStorage。
+- 仪表盘显示空数据（0 资料/0 课程/0 题/0 练习）。
+
+=== 流程 B：上传 → 解析 → 自动分类 → 建议确认 ===
+- 上传 samples 真实材料 ds_notes.md（15 页、237 字）经真实文件输入。
+- 解析结果：MD 10 页，parsed，提取 237 字。
+- 自动分类：建议分类（待确认）49%，原因“疑似新课程”，候选「数据结构与算法 40% · 标题」，
+  知识点候选：链表、栈与队列。
+- 数据库核对（seekdb）：doc 5000010 classify_status=suggested，classify_evidence 持久化候选与原因。
+
+=== 流程 B2：确认按钮（无课程先例时） ===
+- 点击“确认”→ UI 提示成功 → 刷新后文档显示 confirmed 100%，课程=数据结构与算法，章节=线性表，知识点=链表/栈与队列。
+- 数据库核对：doc 5000010 → course_id 5000007、chapter_id 5000010、classify_confidence 1.0；
+  courses 5000007（数据结构与算法，confirmed，1.0）；classification_feedback 行 user_confirmed=1；
+  document_knowledge_links 2 条（kp 5000033 链表、5000034 栈与队列）。
+- 确认按钮在 doc.course 为空（新课程未落库）时也可用：候选回退逻辑生效。
+
+=== 流程 B3：应用内“更正”对话框（替代 window.prompt） ===
+- 点击“更正”→ 打开应用内对话框（人工更正分类），预填 课程=数据结构与算法 / 章节=线性表 / 知识点=链表，栈与队列。
+- 修改章节为“线性表（修订）” → 点击“保存更正”。
+- UI：提示“已人工更正「ds_notes.md」”，文档行章节显示“线性表（修订）”，状态 confirmed 100%。
+- 数据库核对：chapters 5000011 name=线性表（修订）；classification_feedback 新行 user_confirmed=0；
+  documents.classify_status=confirmed；document_knowledge_links 保持 2 条。
+- 结论：更正流程端到端可用，且不再依赖被浏览器抑制的 window.prompt。
+
+=== 流程 C：知识检索 ===
+- 查询“链表”：10 条命中，模式 hybrid，全文 0 / 向量 10（2 字词无法触发 trigram 全文索引，属预期），
+  全部命中带页码（第 8/9/6/5/12/15/14/2/3/11 页）与来源文件名 ds_notes.md。
+- 查询“二叉树的遍历”：10 条命中，全文 1 / 向量 10，首条命中“第 15 页 · 全文匹配 · 向量匹配”。
+- 结论：混合检索 + 来源引用在真实浏览器中可用。
+
+=== 流程 D：练习（先决条件：为新身份题库播种 3 道题） ===
+- 说明：新身份刚创建、题库为空，练习流程需要题目。按测试夹具方式用 SQL 直接写入 3 道单选题
+  （session_id=8529d15599004eef，course 5000007，chapter 5000010，链接 kp 5000033/5000034；
+  题目内容均来自 ds_notes.md 正文，无编造）。播种脚本在 tmp_out（不进仓库）。
+- 练习页显示“数据结构与算法（3 题）”→ 开始练习 → 3 题全部渲染（题干/选项/知识点标签）。
+- 作答：第 1 题 B（对）、第 2 题故意选 C（错）、第 3 题 B（对）→ 交卷。
+- 结果页：得分 67，答对 2/3，逐题解析（判分依据 selected/ correct answer），
+  掌握度变化：链表 0%、栈与队列 80%，生成 2 个复习任务。
+- 数据库核对：attempts 3 行；knowledge_mastery 2 行；review_tasks 2 行；
+  PowerContext 自动写入 practice_result、weak_knowledge_points 两条记忆（见流程 F）。
+
+=== 流程 E：错题本 / 复习计划 / 掌握度 ===
+- 错题本：显示第 2 题（链表与顺序表相比），错 1 次，正确答案 A、历史答案 C、解析完整。
+- 复习计划：今日待复习 0；即将到期 2 条（链表 due 2026-11-09 原因 mastery=0<threshold、
+  栈与队列 due 2026-11-11），间隔重复原因说明可见；知识点掌握度 链表 0% / 栈与队列 80%。
+
+=== 流程 F：PowerContext 长期记忆（真实读写） ===
+- 记忆页“记忆事件流”展示 2 条自动记忆（practice_result、weak_knowledge_points），
+  每条带真实 PowerContext 引用（entry_id/entry_version_id）。
+- 显式写入笔记“我的学习目标是本周掌握链表和栈的基本操作…”→ 事件流出现“笔记”条目
+  （revision 3，带 PowerContext 引用）。
+- 记忆检索“我哪些知识点最薄弱？”→ 召回“薄弱知识点：链表”与练习结果（fts 命中，score 0.02）。
+- 结论：PowerContext 按身份 scope 真实读写、可检索。
+
+=== 流程 G：关闭/重开恢复（合法持久身份） ===
+- 整页导航刷新 → 身份恢复 8529d15599004eef；仪表盘：1 资料、1 课程、3 题、3 次练习、
+  2 个已掌握知识点、平均掌握度 40%。数据经 localStorage token 自动恢复，无重复创建身份。
+
+=== 流程 H：独立身份隔离（全新身份看不到任何他人数据） ===
+- 重置后新身份 d67a80c3f744460b：仪表盘全 0；记忆页“记忆事件流（最近 0 条）”；
+  课程/资料/错题/练习均为空。
+- 反向核对（用旧身份 A 的 token 直接调 API）：A 的资料 1 条、记忆 3 条、统计完整无损。
+- 无 token 请求 GET /api/sessions/me 与 GET /api/sessions/{A}/documents 均 401
+  “unauthorized: missing or invalid bearer token”（URL 中的 session_id 不构成凭据）。
+
+=== 流程 I：控制台 / 网络泄露检查 ===
+- 控制台 5 条消息：vite 连接与 React Router 未来版本提示，无错误、无 Token、无敏感数据。
+- 网络请求 38 条全部可见：API 请求 URL 不含任何 Token；Token 仅经 Authorization: Bearer 头传递。
+- 页面所有请求 URL 中出现的 session_id 经流程 H 证明无凭据效力（缺 token 一律 401）。
+
+=== 流程 J：退出/重置机制 ===
+- 点击“重置匿名身份”→ 确认提示 → localStorage 清空 → 自动创建全新身份 d67a80c3f744460b。
+- 旧身份 A 数据未删除（受控保留，凭原 token 可访问）；当前浏览器不再持有旧凭据，
+  无法再访问 A 的任何数据（401）。
+- 结论：退出/重置机制符合“删除本地凭据、数据服务端保留、仅凭 token 恢复”的受控设计。
+
+=== 汇总 ===
+A 自动创建身份：通过
+B 上传/解析/分类/候选：通过
+B2 确认按钮（新课程场景）：通过（含 DB 落库核对）
+B3 应用内更正对话框：通过（含 DB 落库核对）
+C 知识检索+来源引用：通过
+D 练习/判分/掌握度/复习任务：通过（题库以 SQL 夹具方式播种，已如实说明）
+E 错题本/复习计划：通过
+F PowerContext 记忆写入/召回：通过
+G 重开恢复：通过
+H 跨身份隔离（正向+反向+无 token 401）：通过
+I 控制台/网络无泄露：通过
+J 重置匿名身份：通过

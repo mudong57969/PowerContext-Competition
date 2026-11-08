@@ -1,0 +1,12 @@
+VAR %%token%%: (('version_tokens_session', ''), ('version_tokens_session_number', '0'))
+VAR %%ngram%%: ()
+VAR %%parser%%: (('parser_max_mem_size', '18446744073709551615'),)
+Q='功耗' -> []
+Q='动态' -> []
+Q='态功' -> []
+Q='动态功' -> [3]
+Q='功耗公' -> [3]
+Q='动态功耗' -> [4]
+Q='cmos' -> [5]
+Q='inverter' -> [5]
+Q='动态 态功' -> []

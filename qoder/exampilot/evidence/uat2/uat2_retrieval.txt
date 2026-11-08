@@ -1,0 +1,22 @@
+search 'velocity saturation': mode=hybrid fts=6 vec=32 hits=5
+  doc=1000002 file=03-chapter2-device02-MOS-dynamic_T.pptx course=数字集成电路 chapter=MOS 器件 page=3 matched=['fts', 'vector'] score=0.03178
+    text: 'Nonideal characteristics\nVelocity saturation\nChannel length modulation\nThreshold Variation'
+  doc=1000002 file=03-chapter2-device02-MOS-dynamic_T.pptx course=数字集成电路 chapter=MOS 器件 page=13 matched=['fts', 'vector'] score=0.03002
+    text: 'Nonideal characteristics\nVelocity saturation\nChannel length modulation\nBody effect\nThresho'
+  doc=1000002 file=03-chapter2-device02-MOS-dynamic_T.pptx course=数字集成电路 chapter=MOS 器件 page=4 matched=['fts', 'vector'] score=0.02986
+    text: 'Nonideal characteristics\nVelocity saturation\nChannel length modulation\nThreshold Variation'
+  doc=1000002 file=03-chapter2-device02-MOS-dynamic_T.pptx course=数字集成电路 chapter=MOS 器件 page=21 matched=['fts', 'vector'] score=0.02947
+    text: 'Nonideal characteristics\nVelocity saturation\nChannel length modulation\nBody effect\nThresho'
+  doc=1000002 file=03-chapter2-device02-MOS-dynamic_T.pptx course=数字集成电路 chapter=MOS 器件 page=19 matched=['fts', 'vector'] score=0.02896
+    text: 'Nonideal characteristics\nVelocity saturation\nChannel length modulation\nBody effect\nThresho'
+courses: [(2000001, '数字集成电路')]
+search 'body effect' (course_id=2000001): hits=5
+hits outside filtered course: 0
+  doc=1000002 page=10 matched=['fts', 'vector']
+  doc=1000002 page=39 matched=['fts', 'vector']
+  doc=1000002 page=8 matched=['fts', 'vector']
+knowledge points: [(2000001, 'MOS 阈值电压'), (2000002, '体效应'), (2000003, '沟道长度调制'), (2000004, '速度饱和'), (2000005, '短沟道效应'), (2000006, '泄漏功耗'), (2000007, '尺寸缩放与功耗密度')]
+explain KP 速度饱和: provider=template sources=5
+  src doc=1000002 file=03-chapter2-device02-MOS-dynamic_T.pptx page=42 course=数字集成电路 chapter=MOS 器件
+  src doc=1000002 file=03-chapter2-device02-MOS-dynamic_T.pptx page=18 course=数字集成电路 chapter=MOS 器件
+  src doc=1000002 file=03-chapter2-device02-MOS-dynamic_T.pptx page=15 course=数字集成电路 chapter=MOS 器件

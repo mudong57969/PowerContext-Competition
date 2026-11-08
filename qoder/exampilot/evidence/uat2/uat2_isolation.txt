@@ -1,0 +1,35 @@
+== 0. seed: write one memory into SA (its own scope) ==
+200 {'ok': True, 'reference': {'family': 'memory', 'artifact_id': 'memory', 'revision': 1}}
+
+== 1. anonymous session enumeration (no auth) ==
+HTTP 200 | sessions returned: 5
+  id=27a291634c6f4297 name=UAT2-测试会话A scope_id=<redacted> docs=2
+  id=fd03b69768d343b2 name=UAT2-隔离探针B scope_id=<redacted> docs=0
+  id=9e7fc0f065134af5 name=我的备考会话 scope_id=<redacted> docs=1
+  id=0672a230825e4502 name=我的备考会话 scope_id=<redacted> docs=1
+  id=d181a2a90f614248 name=smoke scope_id=<redacted> docs=2
+
+== 2. fresh anonymous session SB sees its own data (expect empty) ==
+SB documents: 200 0
+SB memories: 200 0
+SB memory search: 200 {"available": true, "mode": "unknown", "hits": []}
+SB mastery: 200 0
+
+== 3. SB reads OLD user SA's learning data (should be blocked, is it?) ==
+SB -> SA memories: 200 [{"id": 2000003, "session_id": "27a291634c6f4297", "scope_id": "<redacted>", "kind": "note", "summary": "UAT2 隔离测试：会话A的私有学习记忆内容-圆周率π≈3.14159", "memory_reference": "{\"family\": \"memory\", \"artifact_id\": \"memory\", \"revision\": 1}", "status": "ok", "created_at": "2026-11-06T2
+SB -> SA memory search: 200 {"available": true, "mode": "fts", "hits": [{"text": "UAT2 隔离测试：会话A的私有学习记忆内容-圆周率π≈3.14159", "score": 0.01639344262295082, "matched_by": ["fts"], "entry_id": "<redacted>", "entry_version_id": "<redacted>"}]}
+SB -> SA documents: 200 [('data_structures_notes_uat2.md', '概率论'), ('probability_notes_uat2.md', '概率论')]
+
+== 4. SB reads round-1 user session (MOS) data ==
+SB -> MOS documents: 200 [('03-chapter2-device02-MOS-dynamic_T.pptx', '数字集成电路')]
+SB -> MOS memories: 200 1
+
+== 5. explain IDOR: SB uses a knowledge_point_id from the MOS session ==
+foreign KP id=2000001 name='MOS 阈值电压'
+SB explain with foreign KP: 200 {"knowledge_point": "MOS 阈值电压", "explanation": "## MOS 阈值电压\n\n> 说明：当前未配置 LLM，以下为基于资料片段的模板讲解。\n\n**资料要点**：\n\n\n**学习建议**：\n1. 用自己的话复述上述要点，并找出它们之间的联系；\n2. 完成对应知识点的练习题，错题会自动进入错题本；\n3. 按复习计划隔日回顾，巩固记忆。", "provider": "template", "sources": [], "memory": {"ok": true, "reference": {"family": "memory", "art
+
+== 6. SB writes into SA's memory scope (should be blocked, is it?) ==
+SB -> SA memory write: 200 {"ok": true, "reference": {"family": "memory", "artifact_id": "memory", "revision": 2, "entry_id": "<redacted>", "entry_version_id": "<redacted>
+
+注：scope_id 与 PowerContext entry/version id 已脱敏（<redacted>）。会话 id 在修复后不再构成凭据
+（无 token 一律 401），故保留原值以便核对修复前后状态。

@@ -1,0 +1,15 @@
+== 1. confirm the mis-classified data-structures doc as a NEW course ==
+confirm: 200 {"document_id": 2000002, "status": "confirmed", "course": "数据结构与算法", "chapter": "线性表", "knowledge_points": []}
+
+== 2. upload a low-confidence doc into SA ==
+SA documents before: [(2000002, 'data_structures_notes_uat2.md', 'confirmed'), (2000001, 'probability_notes_uat2.md', 'auto')]
+upload sparse doc: {"id": 2000003, "filename": "sparse_notes_uat2.md", "ok": true, "error": null, "duplicate": false, "file_type": "md", "page_count": 1, "parse_status": "parsed", "classify_status": "pending", "classify_confidence": 0.0, "classify_reason": "insufficient_text", "course": null, "chapter": null, "knowledge_points": [], "course_candidates": [{"name": "[sparse]", "score": 0.1, "source": "filename"}, {"na
+
+== 3. correct the low-confidence doc to a custom course ==
+correct: 200 {"document_id": 2000003, "status": "confirmed", "course": "概率论与数理统计", "chapter": "随机变量", "knowledge_points": ["随机变量"]}
+
+== 4. SA documents after confirm/correct ==
+  id=2000003 sparse_notes_uat2.md: confirmed conf=1.0 course=概率论与数理统计 chapter=随机变量 kps=['随机变量']
+  id=2000002 data_structures_notes_uat2.md: confirmed conf=1.0 course=数据结构与算法 chapter=线性表 kps=[]
+  id=2000001 probability_notes_uat2.md: auto conf=0.82 course=概率论 chapter=随机事件与概率 kps=[]
+SA courses: [(2000002, '概率论', 'auto', 0.82), (2000003, '数据结构与算法', 'confirmed', 1.0), (2000004, '概率论与数理统计', 'confirmed', 1.0)]

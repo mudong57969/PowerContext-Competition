@@ -1,0 +1,63 @@
+======================================================================
+document_id        : 1000002
+session_id         : 9e7fc0f065134af5
+course_id          : None
+chapter_id         : None
+filename           : 03-chapter2-device02-MOS-dynamic_T.pptx
+file_type          : pptx
+file_size(bytes)   : 24734608
+page_count         : 50
+parse_status       : parsed
+classify_status    : pending
+classify_confidence: 0.138
+ocr_required       : 0
+created_at         : 2026-11-06 09:34:32
+updated_at         : 2026-11-06 09:34:32
+classify_evidence  :
+{
+  "course": "数字集成电路",
+  "course_confidence": 0.25,
+  "chapter": null,
+  "chapter_confidence": 0.0,
+  "knowledge_points": [
+    "MOS 阈值电压"
+  ],
+  "signals": {
+    "lexicon_course": {
+      "name": "数字集成电路",
+      "score": 0.25
+    },
+    "existing_courses": [],
+    "retrieval_course": {
+      "name": null,
+      "score": 0.0
+    },
+    "chapter_pattern": {
+      "name": null,
+      "score": 0.0
+    },
+    "chapter_keywords": {
+      "name": null,
+      "score": 0.0
+    },
+    "knowledge_points": [
+      "MOS 阈值电压"
+    ]
+  },
+  "formula": "0.55*course + 0.30*chapter + 0.15*retrieval"
+}
+chunks             : 50
+original_chars     : 10230
+normalized_chars   : 10163
+chunks_with_embed  : 50
+distinct_pages     : 49
+sample_chunks      :
+  [page 1] CMOS VLSI Design2.CMOS Transistor Theory\nFu yuzhuo
+  [page 2] outline\nPN junction principle\nCMOS transistor introduction\nIdeal I-V characteristics under static conditions\nVelocity Saturation\nDynamic Characteristics\nN
+  [page 3] Nonideal characteristics\nVelocity saturation\nChannel length modulation\nThreshold Variations\nLeakage Currents\nLatchup\nProcess variations\n3/72
+  [page 4] Nonideal characteristics\nVelocity saturation\nChannel length modulation\nThreshold Variations\nLeakage Currents\nLatchup\nProcess variations\n4/72\nBody Effect
+  [page 5] Threshold Variations — Short-Channel Effect\nThe depletion regions around the source and drain terminals become closer with the decreased channel length\nThe ga
+  [page 6] Short-channel Model (A unified model for manual analysis)\n6\nfor\n(with channel modulation)\nfor\nwith\nand\nParameters for manual model of generic 0.25um CMO
+approx_empty_slides: 1
+existing_courses   :
+chunk_chapters     : ()

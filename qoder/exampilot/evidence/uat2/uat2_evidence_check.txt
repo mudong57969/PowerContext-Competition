@@ -1,0 +1,24 @@
+doc 2000001 probability_notes_uat2.md: status=auto conf=0.82
+  evidence keys: ['chapter', 'chapter_confidence', 'course', 'course_confidence', 'formula', 'knowledge_points', 'kp_evidence', 'signals']
+  course='概率论' course_confidence=1.0
+  course_candidates stored: None
+  chapter='随机事件与概率' chapter_confidence=0.9
+  reason=None
+doc 2000002 data_structures_notes_uat2.md: status=confirmed conf=1.0
+  evidence keys: ['chapter', 'chapter_confidence', 'course', 'course_confidence', 'formula', 'knowledge_points', 'kp_evidence', 'signals']
+  course='概率论' course_confidence=0.67
+  course_candidates stored: None
+  chapter='线性表' chapter_confidence=0.9
+  reason=None
+doc 2000003 sparse_notes_uat2.md: status=confirmed conf=1.0
+  evidence keys: ['chapter', 'chapter_confidence', 'course', 'course_confidence', 'formula', 'knowledge_points', 'signals']
+  course=None course_confidence=0.0
+  course_candidates stored: None
+  chapter=None chapter_confidence=0.0
+  reason=None
+doc 2000004 random_var_review_uat2.md: status=suggested conf=0.642
+  evidence keys: ['chapter', 'chapter_confidence', 'course', 'course_confidence', 'formula', 'knowledge_points', 'kp_evidence', 'signals']
+  course='概率论' course_confidence=0.95
+  course_candidates stored: None
+  chapter=None chapter_confidence=0.0
+  reason=None

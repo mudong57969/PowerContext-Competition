@@ -1,0 +1,20 @@
+HEALTH 200 ok {'configured': True, 'ok': True, 'database': 'test'} {'provider': 'local', 'enabled': True, 'model': 'BAAI/bge-small-zh-v1.5', 'dimension': 512}
+SESSION 200
+  scope_id: <redacted> mem_warning: None
+UPLOAD 200
+  doc: cmos_notes.md auto 0.82 数字集成电路 MOS 器件 ['MOS 阈值电压', 'MOS 工作区', '体效应', '沟道长度调制', 'CMOS VTC', '传播延迟', '动态功耗', '短路功耗', '泄漏功耗', '互连延迟', '扇出与扇入', '尺寸缩放与功耗密度'] warn: []
+  doc: cmos_notes.pdf auto 0.927 数字集成电路 工艺与缩放 ['MOS 阈值电压', 'MOS 工作区', '体效应', '沟道长度调制', 'CMOS VTC', '传播延迟', '短路功耗', '泄漏功耗', '互连延迟', '扇出与扇入', '尺寸缩放与功耗密度'] warn: []
+SEARCH 200 hybrid fts: 4 vec: 22 hits: 5 mem: {'available': True, 'mode': 'unknown', 'hits': [], 'warning': None}
+  top: cmos_notes.md ['fts', 'vector'] 0.03279
+COURSES 200 [('数字集成电路', 12, 0)]
+PRACTICE_START 200
+  questions: 5 ps_id: 1
+SUBMIT 200
+  score: 60.0 correct: 3 / 5 review_tasks: 4 memory: {'ok': True, 'reference': {'family': 'memory', 'artifact_id': 'memory', 'revision': 1, 'entry_id': '<redacted>', 'entry_version_id': '<redacted>'}}
+  mastery: [('传播延迟', 0.0), ('沟道长度调制', 0.8), ('短路功耗', 0.8), ('扇出与扇入', 0.8)]
+MISTAKES 200 count: 2
+REVIEW_PLAN 200 due: 0 upcoming: 4
+MEM_EVENTS 200 count: 2 [('weak_knowledge_points', 'ok'), ('practice_result', 'ok')]
+MEM_SEARCH 200 {'available': True, 'mode': 'fts', 'hits': [{'text': '薄弱知识点：传播延迟', 'score': 0.01639344262295082, 'matched_by': ['fts'], 'entry_id': '<redacted>', 'entry_version_id': '<redacted>'}, {'text': '完成练习 5 题，答对 3 题，得分 60.0；涉及知识点 4 个。', 'score': 0.016129032258064516, 'matched_by': ['fts'], 'entry_id': '<redacted>', 'entry_version_id': '<redacted>'}]}
+EXPLAIN 200 provider: template sources: 5 mem: {'ok': True, 'reference': {'family': 'memory', 'artifact_id': 'memory', 'revision': 3, 'entry_id': '<redacted>', 'entry_version_id': '<redacted>'}}
+  text head: ## MOS 阈值电压  > 说明：当前未配置 LLM，以下为基于资料片段的模板讲解。  **资料要点**：  1. 〔cmos_notes.md 第7页〕##

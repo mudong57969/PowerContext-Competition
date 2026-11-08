@@ -1,0 +1,11 @@
+KP evidence verification for document 1000002 (chunks concatenated per page)
+======================================================================
+[OK] MOS 阈值电压: cited 17 slides, without-keyword: -
+[OK] 体效应: cited 17 slides, without-keyword: -
+[OK] 沟道长度调制: cited 5 slides, without-keyword: -
+[OK] 速度饱和: cited 6 slides, without-keyword: -
+[OK] 短沟道效应: cited 1 slides, without-keyword: -
+[OK] 泄漏功耗: cited 12 slides, without-keyword: -
+[OK] 尺寸缩放与功耗密度: cited 9 slides, without-keyword: -
+======================================================================
+OVERALL: PASS

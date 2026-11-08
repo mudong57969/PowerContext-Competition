@@ -1,0 +1,51 @@
+ExamPilot 前端浏览器实测记录
+==============================
+日期: 2026-11-06
+环境: Vite dev server http://127.0.0.1:5173 (proxy /api -> 127.0.0.1:8001)
+      WSL 后端 uvicorn 8001 + PowerContext 8000 (setsid 常驻)
+测试方式: browser-use MCP 真实点击 + 快照
+
+1. 应用引导
+   - 自动创建/恢复会话 (localStorage), 会话 id 0672a230825e4502
+   - 侧边栏三枚健康芯片全绿: seekdb 正常(test 库) / PowerContext 已连接 / local BAAI/bge-small-zh-v1.5
+
+2. 资料管理 (Documents)
+   - 真实上传 samples/cmos_notes.md -> 解析 parsed, 自动分类 82% 置信度
+   - 课程=数字集成电路, 章节=MOS 器件, 12 个知识点全部列出
+
+3. 知识检索 (Search)
+   - 查询 "动态功耗由哪两部分组成？" -> mode=hybrid, fts:2 vec:19
+   - 首条命中 = 动态功耗公式片段, matched_by=[fts,vector] 双来源
+
+4. AI 讲解 (Explain)
+   - 提问 "请解释什么是动态功耗..." -> provider=template (未配置 LLM, 页面如实标注)
+   - 讲解含资料要点+引用来源 5 条, Markdown 渲染正常
+
+5. 练习 (Practice) - 两轮
+   - 第1轮: 5题混合, 判分 60 分 (3/5), 每题判分依据可见, 生成 5 个复习任务
+     多选题历史答案仅记录 "C" -> 发现 stale-closure bug 并修复 (函数式 setState)
+   - 第2轮: 5题, 判分 80 分 (4/5), 掌握度跨轮累计正确
+     (传播延迟 0%->43%, MOS 工作区 80%->85%, 练习次数 1->2)
+   - 判断题 "互连线延迟占比下降" 我的答案判错 -> 正确解析为"错"(bool 判断题, 判分依据如实展示)
+
+6. 错题本 (Mistakes)
+   - 第1轮 2 道错题自动收录, 含正确答案/历史答案/解析, 类型徽章正确(简答/多选)
+
+7. 复习计划 (Review)
+   - 5 个 upcoming 任务按间隔重复排期 (1d/3d), reason 显示
+     mastery=0.00 (threshold 0.6), practices=1, streak=0 -> due in 1d
+   - 掌握度按从低到高排序展示
+
+8. 长期记忆 (Memory)
+   - 记忆事件流 2 条: weak_knowledge_points / practice_result
+   - 每条带真实 PowerContext 引用 (entry_id / entry_version_id / revision)
+   - 检索 "哪些知识点最薄弱" -> 召回 "薄弱知识点：传播延迟、泄漏功耗" (fts, score 1.6)
+
+修复的 bug (本轮):
+- Health 响应结构不匹配 (memory.enabled/reachable 而非 available/mode)
+- 后端题型值 single_choice/multi_choice (而非 choice/multiple_choice)
+- 多选题勾选丢失 (stale closure) -> 函数式状态更新
+- Dashboard 使用启动时的过期统计 -> 进入页面时重新拉取
+- 记忆检索分数误标 % -> 改为原始 score 展示
+
+构建: tsc --noEmit + vite build 通过 (46 modules, js 213KB / gzip 66.9KB)

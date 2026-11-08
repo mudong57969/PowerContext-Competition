@@ -1,0 +1,202 @@
+[
+ {
+  "page_number": 1,
+  "text": "CMOS VLSI Design\u000b\u000b2.CMOS Transistor Theory\nFu yuzhuo"
+ },
+ {
+  "page_number": 2,
+  "text": "outline\nPN junction principle\nCMOS transistor introduction\nIdeal I-V characteristics under static conditions\nVelocity Saturation\nDynamic Characteristics\nNonideal I-V effects\n2/72"
+ },
+ {
+  "page_number": 3,
+  "text": "Nonideal characteristics\nVelocity saturation\nChannel length modulation\nThreshold Variations\nLeakage Currents\nLatchup\nProcess variations\n3/72"
+ },
+ {
+  "page_number": 4,
+  "text": "Nonideal characteristics\nVelocity saturation\nChannel length modulation\nThreshold Variations\nLeakage Currents\nLatchup\nProcess variations\n4/72\nBody Effect\nVds\nShort  Channel Length"
+ },
+ {
+  "page_number": 5,
+  "text": "Threshold Variations — Short-Channel Effect\nThe depletion regions around the source and drain terminals become closer with the decreased channel length\nThe gate control over the channel in short-channel MOSFET is weaker as compared to a long channel device\nL\n5/72"
+ },
+ {
+  "page_number": 6,
+  "text": "Short-channel Model \u000b(A unified model for manual analysis)\n6\nfor\n(with channel modulation)\nfor\nwith\nand\nParameters for manual model of generic 0.25um CMOS process (minimum length device)\noverdrive voltage"
+ },
+ {
+  "page_number": 7,
+  "text": "VSB = substrate bias between source & body\nVT0 = threshold voltage for VSB = 0 (determined by manufacturing)\n= body effect coefficient (expressing the impact of VSB, positive for NMOS, negative for PMOS)\nɸF: Fermi potential\nBody effect\n7/72"
+ },
+ {
+  "page_number": 8,
+  "text": "Body effect\nBody: p substrate  Source: n+ doping area\n[Vsource>VBody ] → Reverse body bias(RBB)\n[Vsource<VBody ] → Forward body bias(FBB)\nTake NMOS as an example:\n8/72"
+ },
+ {
+  "page_number": 9,
+  "text": "Body effect\nNominal threshold voltage of 0.4V and doping level of 8*1017cm-3,tox=4nm, the body is tied to ground with a substrate contact. how much does the threshold change at room temperature if the source is at 1.1V instead of 0,note, ni= 1.45*1010cm-3，𝛆0=8.85*10-14F/cm, 𝛆silicon=11.7𝛆0 ，𝛆ox=3.9𝛆0，q=1.6*10-19C\nThe threshold voltage is increased by 0.28V\n9/72"
+ },
+ {
+  "page_number": 10,
+  "text": "Body effect\nUsing threshold voltage formulation：\nThreshold voltage increases nearly 2x due to body bias effect!\n10/72"
+ },
+ {
+  "page_number": 11,
+  "text": "Threshold Variations — DIBL\nAs the reverse bias voltage across the drain-to-body p-n junction is increased, the depth of the drain-to-body junction depletion layer contributes a larger amount of depletion charge to the channel\nη: DIBL coefficient\n    typically 0.1 \n    (often expressed as 100 mV/V).\n11/72"
+ },
+ {
+  "page_number": 12,
+  "text": "12/62\nDIBL cannot be overlooked at the 16nm process"
+ },
+ {
+  "page_number": 13,
+  "text": "Nonideal characteristics\nVelocity saturation\nChannel length modulation\nBody effect\nThreshold Variations\nLeakage Currents\nLatchup\nProcess variations\n13/72"
+ },
+ {
+  "page_number": 14,
+  "text": "Leakage Sources\nSubthreshold conduction\nTransistors can’t abruptly turn ON or OFF\nJunction leakage\nReverse-biased PN junction diode current\nGate leakage\nTunneling through ultrathin gate dielectric\n\nSubthreshold leakage is the \nbiggest source in modern transistors\n14/72"
+ },
+ {
+  "page_number": 15,
+  "text": "Sub-Threshold Conduction\nSub-threshold meaning VGS < VT\nIn most digital ICs, sub-threshold current is not desirable (leakage)\nWe want fast current drop for VGS < VT (prevent leakage)\nIn reality current does not abruptly reduce to zero below the threshold voltage but rather decreases exponentially\nTypical values for S: 60 .. 100 mV/decade\n15/72"
+ },
+ {
+  "page_number": 16,
+  "text": "Transistors are never truly off"
+ },
+ {
+  "page_number": 17,
+  "text": "PN reverse bias current \nWeak inversion\nDIBL\nGIDL\nPunch through\nNarrow channel effect\nGate oxide tunneling\nHot carrier injection\nLeakage Sources\nSubthreshold leakage is the \nbiggest source in modern transistors\n17/72"
+ },
+ {
+  "page_number": 18,
+  "text": "Temperature dependence\nCarrier mobility decreases with temperature\nMagnitude of the threshold voltage decrease with temperature\nJunction leakage increases with temperature\n18/72"
+ },
+ {
+  "page_number": 19,
+  "text": "Nonideal characteristics\nVelocity saturation\nChannel length modulation\nBody effect\nThreshold Variations\nSubthreshold Conduction \nLeakage Currents\nLatchup\nProcess variations\n19/72"
+ },
+ {
+  "page_number": 20,
+  "text": "Latchup\nExternal voltages can ring below GND or above VDD\n20/72"
+ },
+ {
+  "page_number": 21,
+  "text": "Nonideal characteristics\nVelocity saturation\nChannel length modulation\nBody effect\nThreshold Variations\nSubthreshold Conduction \nLeakage Currents\nLatchup\nProcess variations\n21/72"
+ },
+ {
+  "page_number": 22,
+  "text": "Process variations\nVariations in the process parameters\nImpurity concentration densities,Oxide thicknesses,Diffusion depths\nSheet resistances, threshold voltage diverging.\nVariations in the dimensions of the devices\nDeviations in the W/L ratios\nTradeoff between economic and yield\n22/72"
+ },
+ {
+  "page_number": 23,
+  "text": "Parameter Variation\nTransistors have uncertainty in parameters\nProcess: Leff, Vt, tox of nMOS and pMOS\nVary around typical (T) values\nFast (F)\nLeff: ______\nVt:  ______\ntox:  ______\nSlow (S): opposite\nNot all parameters are independent\n\tfor nMOS and pMOS\n23/72"
+ },
+ {
+  "page_number": 24,
+  "text": "Parameter Variation\nTransistors have uncertainty in parameters\nProcess: Leff, Vt, tox of nMOS and pMOS\nVary around typical (T) values\nFast (F)\nLeff: short\nVt:  low\ntox:  thin\nSlow (S): opposite\nNot all parameters are independent\n\tfor nMOS and pMOS\n24/72"
+ },
+ {
+  "page_number": 25,
+  "text": "Environmental Variation\nVDD and T also vary in time and space\nFast:\nVDD: high\nT:     low\n25/72"
+ },
+ {
+  "page_number": 26,
+  "text": "Micro-Lab1:The Scale-Down Paradox\nSubthreshold conduction challenges when\nscaling from 250nm to 16nm."
+ },
+ {
+  "page_number": 27,
+  "text": "Defining the subthreshold slope (S)\nThe benchmark:S ≈ 60mV/decade\n(Due to thermionic emission limits and Boltzmann distribution of carriers,\nit cannot go lower at room temperature without novel physics)\nThe subthreshold slope measures the voltage change required to boost off-state  current by a factor of 10."
+ },
+ {
+  "page_number": 28,
+  "text": "Micro-lab 1: Subthreshold - 250nm vs 16nm\nObjective\nCompare subthreshold slope S between 250nm and 16nm\nMinimum-size devices, W/L = 2 (fair comparison)\nObserve S degradation with technology scaling\nSetup\n250nm: W=0.5μm, L=0.25μm (W/L=2)\n16nm: W=32nm, L=16nm (W/L=2)\nTasks\nVds = 0.1V, DC sweep Vgs\nDiscussion\nWhy does S degrade more? \nWhat happens if VDS increases further?"
+ },
+ {
+  "page_number": 29,
+  "text": "Micro-lab 1: Subthreshold - 250nm vs 16nm\n★ S increases by 11.9% → S degrades with scaling"
+ },
+ {
+  "page_number": 30,
+  "text": "The results reveals a fundamental scaling penalty"
+ },
+ {
+  "page_number": 31,
+  "text": "Transistors are never truly off"
+ },
+ {
+  "page_number": 32,
+  "text": "Further impact of DIBL"
+ },
+ {
+  "page_number": 33,
+  "text": "The inescapable VLSI design tradeoff\nStandby Power\n(Higher I_off,Degraded S)\nPerformance\n(Lower Vth,Shorter L)\nCircuit designers cannot scale for maximum speed without simultaneously battling severe standby power drains. Subthreshold slope determines the ultimate floor for battery life in portable electronics.\nLeakage increases exponentially with temperature via positive feedback."
+ },
+ {
+  "page_number": 34,
+  "text": "Subthreshold slope inherently degrades with scaling(+11.9%at            16nm)due to Drain-Induced Barrier Lowering overpowering\ngate control.\n\n\n\nThreshold voltages must continually decrease to maintain\nperformance as supply voltages shrink,narrowing the margin for          or shutting off the device.\n\n\n\nThe collision of lower Vth and degraded S yields exponential off-\nff-state leakage,making standby power the defining challenge of\nadvanced node architecture.\nThe Scale-Down Paradox:Key Takeaways"
+ },
+ {
+  "page_number": 35,
+  "text": "Scaling Physics from 250nm to 16nm\nThe Body Effect Paradox"
+ },
+ {
+  "page_number": 36,
+  "text": "This widening depletion region increases the bulk charge that must be   depleted by the gate,directly forcing the Threshold Voltage(Vth)upward.\nThe Physical Origin of the Body Effect\nAs Vsb>0, the source-body PN junction becomes more reverse-biased."
+ },
+ {
+  "page_number": 37,
+  "text": "The Mathematics of Threshold Shift\nEquation      Deconstruction"
+ },
+ {
+  "page_number": 38,
+  "text": "Micro-lab 2: Body Effect - 250nm vs 16nm\nObjective\nCompare body effect coefficient γ between 250nm and 16nm\nMinimum-size devices, W/L = 2 (fair comparison)\nUnderstand body effect scaling\nSetup\n250nm: W=0.5μm, L=0.25μm (W/L=2)\n16nm: W=32nm, L=16nm (W/L=2)\nTasks\nVsb = 0 ~ 1.0V, measure Vth at each Vsb\nDiscussion\nWhy does γ decrease with technology scaling?\nHow does body effect affect stacked transistors?"
+ },
+ {
+  "page_number": 39,
+  "text": "Micro-lab 2: Body Effect - 250nm vs 16nm\n★ γ decreases by 19.0% → body effect weakens"
+ },
+ {
+  "page_number": 40,
+  "text": "Micro-lab 2: Body Effect - 250nm vs 16nm\nKey Results\nBody Effect Coefficient γ:\n• 250nm: γ = 0.446 V^0.5\n• 16nm: γ = 0.361 V^0.5\nThreshold Voltage (Vsb=0):\n• 250nm: Vth0 = 460 mV\n• 16nm: Vth0 = 313 mV\nAt the 16nm node, when Vsb = 1V, the threshold voltage shift induced by the body effect accounts for as much as 54% of the initial threshold voltage. For nanoscale devices operating at ultra-low voltages, this constitutes a severe timing catastrophe"
+ },
+ {
+  "page_number": 41,
+  "text": "Micro-lab 2: Body Effect - 250nm vs 16nm\nVsb<0 Is it okay?"
+ },
+ {
+  "page_number": 42,
+  "text": "The Bi-Directional Operating Modes: FBB vs. RBB\nlog(l)\nFBB Shift\nRBB Shift\n(Vsb = 0)\nVgs\nCritical Annotation:\nSubthreshold slope (S) remains\ncompletely unchanged. The\ncurve only shifts horizontally."
+ },
+ {
+  "page_number": 43,
+  "text": "Theoretical Bounds and The Parasitic\n Danger Zone"
+ },
+ {
+  "page_number": 44,
+  "text": "Theoretical Bounds and The Parasitic\n Danger Zone"
+ },
+ {
+  "page_number": 45,
+  "text": "Theoretical Bounds and The Parasitic\n Danger Zone"
+ },
+ {
+  "page_number": 46,
+  "text": "Technology Scaling and Diminishing Returns\n250nm Node\n16nm Node\nTotal Tuning Range: ~300 mV\nTotal Tuning Range: ~150 mV\n118mV\n91mV\n\"As channel lengths shorten, the depletion region at the drain occupies a larger fraction of the channel. The body loses physical control over the channel potential, cutting the Vth tuning range in half — from ~300mV in 250nm to ~150mV in 16nm.\""
+ },
+ {
+  "page_number": 48,
+  "text": "The SoC Architect's Synthesis Playbook\n$V_{sb}$<\nThe Bi-Directional Knob\nMathematical Reliability\nThe standard body effect equation perfectly predicts\nRBB behavior, but loses precision under FBB due to\nminority carrier accumulation.\n250nm → 16nm\nThe Hard Physical Limit\nThe Scaling Trajectory\nFBB is strictly bounded to roughly -0.3V to -0.4V.\nP ushing further activates a parasitic BJT effect, causing\nfatal leakage runaway.\nAs nodes shrink (e.g."
+ },
+ {
+  "page_number": 48,
+  "text": "tes a parasitic BJT effect, causing\nfatal leakage runaway.\nAs nodes shrink (e.g., 250nm to 16nm), tuning authority\ndrops by ∼ 50% (y decreases) due to the reduced\ndominance of the depletion region.\nThe Industrial Reality: Despite diminishing returns at advanced nodes, dynamic switching between FBB and RBB\nremains a non-negotiable architectural strategy for balancing raw performance with strict power budgets in modern silicon."
+ },
+ {
+  "page_number": 49,
+  "text": "Engineering Mitigation Strategies\nDesigners do not just suffer the body effect;they exploit it.Dynamic body biasing allows real-time modulation between high-performance and low-power states."
+ },
+ {
+  "page_number": 50,
+  "text": "Difficult Points of This Section\nThree Types of Capacitance (which types to add up, ultimately corresponding to the two-terminal connection when using the MOS transistor)\nStructural capacitance (process capacitance, but increases with width)\nGate capacitance (varies slightly with operating state, but basically proportional to width (area))\nDiffusion capacitance (depends on operating voltage, proportional to width)\nsubthreshold current\nBody effect,\n50/72"
+ }
+]

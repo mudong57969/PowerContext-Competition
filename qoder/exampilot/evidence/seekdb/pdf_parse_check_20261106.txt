@@ -1,0 +1,4 @@
+pdf bytes: 53071
+pages: 2 ocr_required: False warnings: []
+chars: 1241
+head: 数字集成电路 讲义 / 本讲义覆盖数字集成电路（digital  integrated  circuit）与  VLSI  设计基础，包含  MOS  器件、CMOS / 反相器（inverter）、功耗、互连线与工艺缩放五个章节。 / 第一章 MOS 器件 / MOS 阈值电压 / MOS  晶体管的阈值电压  VT

@@ -1,0 +1,98 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: #f5f7fb;
+  color: #1e293b;
+}
+
+.prose-exampilot h1 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 1rem 0 0.5rem;
+}
+.prose-exampilot h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0.9rem 0 0.4rem;
+}
+.prose-exampilot h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0.8rem 0 0.3rem;
+}
+.prose-exampilot p {
+  margin: 0.5rem 0;
+  line-height: 1.75;
+}
+.prose-exampilot ul,
+.prose-exampilot ol {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+.prose-exampilot ul {
+  list-style: disc;
+}
+.prose-exampilot ol {
+  list-style: decimal;
+}
+.prose-exampilot li {
+  margin: 0.25rem 0;
+  line-height: 1.7;
+}
+.prose-exampilot code {
+  background: #eef2f7;
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  font-size: 0.875em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.prose-exampilot pre {
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  overflow-x: auto;
+  margin: 0.6rem 0;
+}
+.prose-exampilot pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+}
+.prose-exampilot blockquote {
+  border-left: 3px solid #c7d2fe;
+  padding-left: 0.75rem;
+  color: #475569;
+  margin: 0.6rem 0;
+}
+.prose-exampilot strong {
+  font-weight: 700;
+}
+.prose-exampilot table {
+  border-collapse: collapse;
+  margin: 0.6rem 0;
+  font-size: 0.9rem;
+}
+.prose-exampilot th,
+.prose-exampilot td {
+  border: 1px solid #e2e8f0;
+  padding: 0.35rem 0.6rem;
+}
+.prose-exampilot th {
+  background: #f1f5f9;
+  font-weight: 600;
+}
