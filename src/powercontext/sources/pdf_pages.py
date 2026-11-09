@@ -64,11 +64,15 @@ def _extract_page_text(page: PageObject) -> str:
     if fragments < 40 or fragments * 2 < len(lines):
         return plain
 
-    layout = (page.extract_text(extraction_mode="layout") or "").strip()
+    # Fragmented pages need a finer spacing grid to retain word boundaries.
+    layout = (page.extract_text(extraction_mode="layout", layout_mode_scale_weight=1.8) or "").strip()
     # Layout can omit rotated text. Accept whitespace changes and reordering
     # only if every non-whitespace character is still accounted for.
     if Counter(c for c in layout if not c.isspace()) == Counter(c for c in plain if not c.isspace()):
-        return layout
+        # Layout uses long space runs to reproduce horizontal coordinates.
+        # They carry no text content and can exceed Memory's durable-entry limit.
+        lines = (re.sub(r"[ \t]+", " ", line).strip() for line in layout.splitlines())
+        return "\n".join(lines)
     return plain
 
 
