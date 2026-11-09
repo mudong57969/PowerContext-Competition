@@ -598,7 +598,6 @@ async def search_pdf_pages(
             if key not in hits:
                 hits[key] = hit
     candidates = []
-    seen = set()
     # A get validates each exact hit; the citation property uses its real ref.
     from powercontext.builtin.artifacts.memory.models import MemoryCitation
 
@@ -613,9 +612,17 @@ async def search_pdf_pages(
             )
         )
         pages = [ref for ref in record.entry.sources if ref.source_type == "pdf-page"]
-        if record.state != "active" or len(pages) != 1 or pages[0].source_id in seen:
+        if record.state != "active" or len(pages) != 1:
             continue
-        seen.add(pages[0].source_id)
         document_id, _, body = record.entry.text.partition("\n")
         candidates.append(_Candidate(record.citation, pages[0].source_id, body, hit.score, document_id))
-    return tuple(candidate.citation for candidate in _rank(candidates, question)[:limit])
+    citations = []
+    seen = set()
+    for candidate in _rank(candidates, question):
+        if candidate.source_id in seen:
+            continue
+        seen.add(candidate.source_id)
+        citations.append(candidate.citation)
+        if len(citations) == limit:
+            break
+    return tuple(citations)
