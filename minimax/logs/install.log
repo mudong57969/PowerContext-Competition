@@ -1,0 +1,57 @@
+# 独立虚拟环境安装记录
+# 时间: 2026-11-09 14:04:58 CST
+# 平台: Darwin arm64 / macOS 27.2
+# Python: Python 3.12.16
+# venv: /Users/yaoyi/Desktop/oceanbase/.venvs/powercontext-minimax
+
+$ /opt/homebrew/bin/python3.12 -m venv /Users/yaoyi/Desktop/oceanbase/.venvs/powercontext-minimax
+EXIT_CODE=0
+
+$ /Users/yaoyi/Desktop/oceanbase/.venvs/powercontext-minimax/bin/python -m pip install --upgrade pip
+    Uninstalling pip-26.2.2:
+      Successfully uninstalled pip-26.2.2
+Successfully installed pip-26.3
+EXIT_CODE=0
+
+$ /Users/yaoyi/Desktop/oceanbase/.venvs/powercontext-minimax/bin/python -m pip install 'powercontext[cli,server,seekdb]'
+Downloading rich-15.0.0-py3-none-any.whl (310 kB)
+Downloading rpds_py-2026.9.1-cp312-cp312-macosx_11_0_arm64.whl (341 kB)
+Downloading shellingham-1.5.4-py2.py3-none-any.whl (9.8 kB)
+Downloading simpleeval-1.0.8-py3-none-any.whl (18 kB)
+Downloading sqlglot-30.30.0-py3-none-any.whl (807 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 807.6/807.6 kB 3.6 MB/s  0:00:00
+Downloading sse_starlette-3.7.0-py3-none-any.whl (18 kB)
+Downloading starlette-1.10.0-py3-none-any.whl (80 kB)
+Downloading tiktoken-0.14.0-cp312-cp312-macosx_11_0_arm64.whl (1.0 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.0/1.0 MB 5.4 MB/s  0:00:00
+Downloading truststore-0.10.5-py3-none-any.whl (19 kB)
+Downloading typing_inspection-0.4.5-py3-none-any.whl (14 kB)
+Downloading tzdata-2026.6-py2.py3-none-any.whl (348 kB)
+Downloading tzlocal-5.4.5-py3-none-any.whl (18 kB)
+Downloading uncalled_for-0.6.0-py3-none-any.whl (16 kB)
+Downloading watchfiles-1.3.0-cp310-abi3-macosx_11_0_arm64.whl (397 kB)
+Downloading wcmatch-12.0.1-py3-none-any.whl (51 kB)
+Downloading bracex-3.2.2-py3-none-any.whl (14 kB)
+Downloading wcwidth-0.9.4-cp310-abi3-macosx_11_0_arm64.whl (618 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 618.9/618.9 kB 7.2 MB/s  0:00:00
+Downloading websockets-17.4-cp312-cp312-macosx_11_0_arm64.whl (216 kB)
+Downloading jaraco.classes-3.4.0-py3-none-any.whl (6.8 kB)
+Downloading jaraco_context-6.1.2-py3-none-any.whl (7.9 kB)
+Downloading jaraco_functools-4.6.0-py3-none-any.whl (11 kB)
+Downloading mako-1.4.3-py3-none-any.whl (80 kB)
+Downloading more_itertools-11.2.1-py3-none-any.whl (74 kB)
+Downloading pycparser-3.12-py3-none-any.whl (62 kB)
+Downloading regex-2026.11.9-cp312-cp312-macosx_11_0_arm64.whl (294 kB)
+Downloading requests-2.34.2-py3-none-any.whl (73 kB)
+Downloading charset_normalizer-3.5.2-cp312-cp312-macosx_10_13_universal2.whl (367 kB)
+Downloading urllib3-2.8.0-py3-none-any.whl (135 kB)
+Building wheels for collected packages: jieba
+  Building wheel for jieba (pyproject.toml): started
+  Building wheel for jieba (pyproject.toml): finished with status 'done'
+  Created wheel for jieba: filename=jieba-0.42.1-py3-none-any.whl size=19314509 sha256=d26f3f95a1b15134a84be4ed90117f652453c97d3b7d09ec16984077e0cb73bf
+  Stored in directory: /Users/yaoyi/Library/Caches/pip/wheels/08/a1/a3/5c8ac52cc2f5782ffffc34c95c57c8e5ecb3063dc69541ee7c
+Successfully built jieba
+Installing collected packages: sqlite-vec, pyperclip, jieba, websockets, wcwidth, urllib3, uncalled-for, tzlocal, tzdata, typing-extensions, truststore, sqlglot, socksio, sniffio, simpleeval, shellingham, rpds-py, rfc8785, regex, pyyaml, python-multipart, python-dotenv, pymysql, pyjwt, pygments, pycparser, prometheus-client, platformdirs, pfzy, pathable, packaging, numpy, more-itertools, mdurl, MarkupSafe, logfire-api, jsonref, jiter, jaraco.context, idna, httpx-sse, h11, griffelib, greenlet, filelock, docstring-parser, dnspython, click, charset_normalizer, certifi, caio, cachetools, bracex, beartype, attrs, annotated-types, annotated-doc, aiosqlite, wcmatch, uvicorn, typing-inspection, sqlalchemy, requests, referencing, pylibseekdb, pydantic-core, py-key-value-aio, prompt-toolkit, opentelemetry-api, markdown-it-py, Mako, jinja2, jaraco.functools, jaraco.classes, httpcore2, httpcore, exceptiongroup, email-validator, cffi, apscheduler, anyio, aiomysql, aiofile, watchfiles, tiktoken, starlette, rich, pydantic, pycasbin, opentelemetry-semantic-conventions, keyring, jsonschema-specifications, jsonschema-path, inquirerpy, httpx2, httpx, cryptography, alembic, typer, sse-starlette, rich-rst, pyobvector, pydantic-settings, pydantic-graph, opentelemetry-sdk, openapi-pydantic, openai, jsonschema, joserfc, genai-prices, fastapi, anthropic, scalar-fastapi, pydantic-ai-slim, powercontext, mcp, fastmcp-slim, cyclopts, authlib, fastmcp
+
+Successfully installed Mako-1.4.3 MarkupSafe-3.0.4 aiofile-3.12.3 aiomysql-0.3.2 aiosqlite-0.22.1 alembic-1.20.1 annotated-doc-0.0.5 annotated-types-0.8.0 anthropic-2.6.0 anyio-4.16.0 apscheduler-3.11.3 attrs-26.1.0 authlib-1.9.5 beartype-0.23.1 bracex-3.2.2 cachetools-8.0.0 caio-0.12.10 certifi-2026.10.23 cffi-2.1.1 charset_normalizer-3.5.2 click-8.5.1 cryptography-50.0.2 cyclopts-5.4.0 dnspython-2.9.2 docstring-parser-0.18.0 email-validator-2.3.0 exceptiongroup-1.3.1 fastapi-0.162.2 fastmcp-3.4.11 fastmcp-slim-3.4.11 filelock-3.32.7 genai-prices-0.2.1 greenlet-3.5.6 griffelib-2.4.1 h11-0.16.0 httpcore-1.0.9 httpcore2-2.16.0 httpx-0.28.1 httpx-sse-0.4.3 httpx2-2.16.0 idna-3.20 inquirerpy-0.3.4 jaraco.classes-3.4.0 jaraco.context-6.1.2 jaraco.functools-4.6.0 jieba-0.42.1 jinja2-3.1.6 jiter-0.19.0 joserfc-1.8.0 jsonref-1.1.0 jsonschema-4.26.0 jsonschema-path-0.5.0 jsonschema-specifications-2025.9.1 keyring-25.7.0 logfire-api-5.5.0 markdown-it-py-4.2.0 mcp-1.30.0 mdurl-0.1.2 more-itertools-11.2.1 numpy-2.5.4 openai-3.46.0 openapi-pydantic-0.6.0 opentelemetry-api-1.45.2 opentelemetry-sdk-1.45.2 opentelemetry-semantic-conventions-0.66b2 packaging-26.3 pathable-0.6.0 pfzy-0.3.4 platformdirs-4.14.5 powercontext-1.5.0 prometheus-client-0.26.0 prompt-toolkit-3.0.53 py-key-value-aio-0.4.6 pycasbin-2.8.0 pycparser-3.12 pydantic-2.14.3 pydantic-ai-slim-2.66.0 pydantic-core-2.50.4 pydantic-graph-2.66.0 pydantic-settings-2.16.2 pygments-2.21.0 pyjwt-2.15.1 pylibseekdb-1.4.0.post2 pymysql-1.2.0 pyobvector-0.2.29 pyperclip-1.11.0 python-dotenv-1.2.4 python-multipart-0.0.33 pyyaml-6.0.3 referencing-0.37.0 regex-2026.11.9 requests-2.34.2 rfc8785-0.1.4 rich-15.0.0 rich-rst-2.2.0 rpds-py-2026.9.1 scalar-fastapi-1.9.1 shellingham-1.5.4 simpleeval-1.0.8 sniffio-1.3.1 socksio-1.0.0 sqlalchemy-2.1.8 sqlglot-30.30.0 sqlite-vec-0.1.9 sse-starlette-3.7.0 starlette-1.10.0 tiktoken-0.14.0 truststore-0.10.5 typer-0.28.0 typing-extensions-4.16.0 typing-inspection-0.4.5 tzdata-2026.6 tzlocal-5.4.5 uncalled-for-0.6.0 urllib3-2.8.0 uvicorn-0.54.0 watchfiles-1.3.0 wcmatch-12.0.1 wcwidth-0.9.4 websockets-17.4
+EXIT_CODE=0

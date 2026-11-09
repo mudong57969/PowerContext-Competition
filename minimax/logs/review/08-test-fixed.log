@@ -1,0 +1,9 @@
+$ python3 minimax/run_tests.py
+PASS test_list_tasks_without_status_returns_every_record
+PASS test_list_tasks_with_open_status_returns_only_open_records
+PASS test_list_tasks_with_closed_status_returns_only_closed_records
+PASS test_list_tasks_returns_a_new_list_each_call
+PASS test_status_with_surrounding_whitespace_matches_trimmed_status
+
+5 passed, 0 failed, 5 total
+exit=0

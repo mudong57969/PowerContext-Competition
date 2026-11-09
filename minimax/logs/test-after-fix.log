@@ -1,0 +1,21 @@
+# 修复后测试日志 (after-fix)
+# 时间: 2026-11-09 14:18:32 CST
+# 分支: 2026-competition-ecosystem @ d647275c
+# Python: Python 3.12.16
+# 代码版本 (sha256):
+#   task_status.py           = d6c12a951a5840fe1910cbf7911e367b4964d4421e774778bace21a167fae7b8
+#   snapshot/pre-fix/task_status.py = 7a91e0ca221c6ed7f419414ca1d7a10829e6fb80a5b4384678388e26855bd9df
+#   test_task_status.py      = 6f735a5a4f04ae408cec0361375afcad7ed4dd5cc9d14ed4bfd0f866a2de23d5
+#   snapshot/pre-fix/test_task_status.py = 6f735a5a4f04ae408cec0361375afcad7ed4dd5cc9d14ed4bfd0f866a2de23d5
+# 修改依据: minimax/SPEC.md v2 (R5/A4)，输入上下文 minimax/change/input-context.md
+# diff: minimax/change/task_status.diff
+
+$ /opt/homebrew/bin/python3.12 minimax/run_tests.py
+PASS test_list_tasks_without_status_returns_every_record
+PASS test_list_tasks_with_open_status_returns_only_open_records
+PASS test_list_tasks_with_closed_status_returns_only_closed_records
+PASS test_list_tasks_returns_a_new_list_each_call
+PASS test_status_with_surrounding_whitespace_matches_trimmed_status
+
+5 passed, 0 failed, 5 total
+EXIT_CODE=0

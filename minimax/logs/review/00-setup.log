@@ -1,0 +1,54 @@
+# 复跑台架: 2026-11-09 14:39:39 CST
+# 交付目录: /tmp/minimax-review2/minimax   端口: 8002   数据目录: /tmp/minimax-review2/data (空)
+
+$ rsync -a --exclude state/ --exclude __pycache__ --exclude logs/review minimax/ /tmp/minimax-review2/minimax/
+EXIT_CODE=0
+--- 交付文件清单 ---
+./.gitignore
+./.gitkeep
+./README.md
+./SPEC.md
+./TECH-NOTE.md
+./change/change-record.md
+./change/input-context.md
+./change/task_status.diff
+./context
+./context.py
+./ingest.py
+./logs/context-after-fix.log
+./logs/context-before-write.log
+./logs/context-read-back.log
+./logs/context-spec-v1.log
+./logs/context-spec-v2.log
+./logs/ingest-after-fix.log
+./logs/ingest-spec-v1.log
+./logs/ingest-spec-v2.log
+./logs/ingest.log
+./logs/install.log
+./logs/remember-state-after-fix.log
+./logs/remember-state.log
+./logs/server.log
+./logs/test-after-fix.log
+./logs/test-before-fix.log
+./pc_client.py
+./remember_state.py
+./run_tests.py
+./samples/README.md
+./samples/SPEC.v1.md
+./snapshot/pre-fix/run_tests.py
+./snapshot/pre-fix/task_status.py
+./snapshot/pre-fix/test_task_status.py
+./task_status.py
+./test_task_status.py
+$ python3.12 -m venv $HOME/.venvs/powercontext-minimax
+EXIT_CODE=0
+
+$ $VENV/bin/python -m pip install 'powercontext[cli,server,seekdb]'
+
+[notice] A new release of pip is available: 26.2.2 -> 26.3
+[notice] To update, run: /Users/yaoyi/.venvs/powercontext-minimax/bin/python -m pip install --upgrade pip
+EXIT_CODE=0
+
+$ $VENV/bin/python -c 'import importlib.metadata as m; print(m.version("powercontext"), m.version("pylibseekdb"))'
+powercontext 1.5.0 | pylibseekdb 1.4.0.post2
+EXIT_CODE=0

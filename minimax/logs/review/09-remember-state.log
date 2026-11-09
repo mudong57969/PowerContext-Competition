@@ -1,0 +1,10 @@
+$ $VENV/bin/python minimax/remember_state.py '目标测试已修复：status 首尾空白按规格 v2（R5）归一化，5 项测试全部通过（退出码 0）'
+scope_id: scp_4q96vmey8m0ebbcth95khjdj23
+server:   http://127.0.0.1:8002
+wrote:    目标测试已修复：status 首尾空白按规格 v2（R5）归一化，5 项测试全部通过（退出码 0）
+reason:   复跑验收：写入已修复状态
+response: {'changed': True, 'records': [{'artifact': {'family': 'atomic-memory', 'artifact_id': 'art_6ff7e7cfed174268979a42b99e7a64b5', 'revision': 1}, 'kind': 'task-state', 'text': '目标测试已修复：status 首尾空白按规格 v2（R5）归一化，5 项测试全部通过（退出码 0）', 'state': 'active', 'state_version': 0, 'merged_into_id': None}]}
+created state: art_6ff7e7cfed174268979a42b99e7a64b5 rev=1 state=active
+current states:
+ * art_6ff7e7cfed174268979a42b99e7a64b5 rev=1 state=active: 目标测试已修复：status 首尾空白按规格 v2（R5）归一化，5 项测试全部通过（退出码 0）
+EXIT_CODE=0

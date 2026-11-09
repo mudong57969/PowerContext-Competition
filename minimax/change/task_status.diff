@@ -1,0 +1,36 @@
+--- minimax/snapshot/pre-fix/task_status.py	2026-11-09 14:04:30
++++ minimax/task_status.py	2026-11-09 14:18:20
+@@ -7,9 +7,10 @@
+   that status;
+ * omitting the status returns every record.
+ 
+-This module keeps the original behaviour on purpose. Status values are
+-compared verbatim, so surrounding whitespace is *not* stripped yet. The
+-whitespace gap is captured by the target test in ``test_task_status.py``.
++This module implements the current business specification (``SPEC.md``):
++leading and trailing whitespace of the *status argument* is ignored, so
++``" open "`` selects exactly the same records as ``"open"``. The whitespace
++rule is covered by the target test in ``test_task_status.py``.
+ """
+ 
+ from __future__ import annotations
+@@ -43,12 +44,14 @@
+ def list_tasks(status: Optional[str] = None) -> list[TaskRecord]:
+     """Return the records matching ``status``.
+ 
+-    ``status=None`` returns every record. Any other value is compared with
+-    ``==`` against the status of each record, so only the exact status string
+-    matches.
++    ``status=None`` returns every record. Any other value is normalised by
++    stripping leading and trailing whitespace, then compared with ``==``
++    against the status of each record, so ``" open "`` matches ``"open"``.
+ 
+-    The comparison is verbatim: ``" open "`` does not match ``"open"``.
++    The normalisation applies to the argument only: the ``status`` field of
++    the returned records is never rewritten.
+     """
+     if status is None:
+         return list(RECORDS)
+-    return [record for record in RECORDS if record.status == status]
++    normalized = status.strip()
++    return [record for record in RECORDS if record.status == normalized]

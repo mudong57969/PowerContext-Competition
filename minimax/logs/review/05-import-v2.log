@@ -1,0 +1,15 @@
+$ $VENV/bin/python minimax/ingest.py
+scope_id: scp_4q96vmey8m0ebbcth95khjdj23
+server:   http://127.0.0.1:8002
+spec:     /private/tmp/minimax-review2/minimax/SPEC.md
+scope_key:minimax-task-status-sample
+
+[spec] source_id=minimax-spec-v2 -> accepted position=4
+       path=/private/tmp/minimax-review2/minimax/SPEC.md
+[code] source_id=minimax-code-d6c12a95 -> accepted position=2
+       path=/private/tmp/minimax-review2/minimax/task_status.py
+[test] source_id=minimax-test-6f735a5a -> accepted position=3
+       path=/private/tmp/minimax-review2/minimax/test_task_status.py
+
+saved scope id -> /private/tmp/minimax-review2/minimax/state/scope.json
+EXIT_CODE=0

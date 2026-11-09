@@ -1,0 +1,17 @@
+# 资料导入记录 —— 规格更新版 v2
+# 时间: 2026-11-09 14:18:01 CST
+# server: http://127.0.0.1:8000 (backend=seekdb)
+
+$ /Users/yaoyi/Desktop/oceanbase/.venvs/powercontext-minimax/bin/python minimax/ingest.py
+scope_id: scp_740ce2stvqt2kj3gkgj8cncsma
+server:   http://127.0.0.1:8000
+
+[spec] source_id=minimax-spec-v2 -> accepted position=8
+       path=/Users/yaoyi/Desktop/oceanbase/PowerContext-Competition/minimax/SPEC.md
+[code] source_id=minimax-code-7a91e0ca -> accepted position=6
+       path=/Users/yaoyi/Desktop/oceanbase/PowerContext-Competition/minimax/task_status.py
+[test] source_id=minimax-test-6f735a5a -> accepted position=7
+       path=/Users/yaoyi/Desktop/oceanbase/PowerContext-Competition/minimax/test_task_status.py
+
+saved scope id -> /Users/yaoyi/Desktop/oceanbase/PowerContext-Competition/minimax/state/scope.json
+EXIT_CODE=0

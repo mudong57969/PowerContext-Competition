@@ -1,0 +1,18 @@
+$ TMP=$(mktemp -d); cp minimax/snapshot/pre-fix/task_status.py $TMP/; cp minimax/test_task_status.py $TMP/; cp minimax/run_tests.py $TMP/; (cd $TMP && python3 run_tests.py); echo exit=$?
+PASS test_list_tasks_without_status_returns_every_record
+PASS test_list_tasks_with_open_status_returns_only_open_records
+PASS test_list_tasks_with_closed_status_returns_only_closed_records
+PASS test_list_tasks_returns_a_new_list_each_call
+FAIL test_status_with_surrounding_whitespace_matches_trimmed_status
+
+4 passed, 1 failed, 5 total
+
+=== test_status_with_surrounding_whitespace_matches_trimmed_status ===
+Traceback (most recent call last):
+  File "/private/var/folders/d5/82x1jlcn4xn7mxz2ng8hks0m0000gn/T/tmp.QxflbbMoHZ/run_tests.py", line 48, in main
+    test()
+  File "/private/var/folders/d5/82x1jlcn4xn7mxz2ng8hks0m0000gn/T/tmp.QxflbbMoHZ/test_task_status.py", line 74, in test_status_with_surrounding_whitespace_matches_trimmed_status
+    assert list_tasks(" open ") == list_tasks("open")
+AssertionError
+
+exit=1

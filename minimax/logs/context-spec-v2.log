@@ -1,0 +1,198 @@
+# context 运行记录 —— 规格更新版 v2（本次 MiniMax 修改的输入来源）
+# 时间: 2026-11-09 14:18:08 CST
+# server: http://127.0.0.1:8000 (backend=seekdb)
+# 同一份规格存在多个 source ID（minimax-spec / minimax-spec-v1 / minimax-spec-v2），
+# context 按版本号优先选用当前版本 v2。
+
+$ /Users/yaoyi/Desktop/oceanbase/.venvs/powercontext-minimax/bin/python minimax/context.py --emit-context minimax/change/input-context.md
+context written -> minimax/change/input-context.md
+# MiniMax 样例工作上下文
+
+scope_id: scp_740ce2stvqt2kj3gkgj8cncsma
+server:   http://127.0.0.1:8000
+
+## 1. 业务规格（当前版本）
+source_id: minimax-spec-v2
+version:   v2
+来源:      /Users/yaoyi/Desktop/oceanbase/PowerContext-Competition/minimax/SPEC.md
+
+# 业务规格：任务状态筛选
+
+版本: v2
+状态: 生效中
+来源: minimax 赛道最小业务样例
+取代: v1
+
+## 1. 背景
+
+一张固定的任务表，表中每条记录带有 `status` 字段。业务只提供「按状态筛选」这一个动作。
+
+## 2. 数据
+
+固定 5 条记录，状态取值只有 `open` 与 `closed`：
+
+| task_id | status |
+| --- | --- |
+| T-001 | open |
+| T-002 | open |
+| T-003 | closed |
+| T-004 | open |
+| T-005 | closed |
+
+## 3. 功能需求
+
+- **R1** 记录集合固定，不随调用变化。
+- **R2** 传入合法状态（`open` / `closed`）时，精确返回该状态的记录。
+- **R3** 不传状态时，返回全部记录（此行为不变）。
+- **R4** 状态取值不在合法集合内时，返回空结果，不抛异常。
+- **R5** **状态入参的首尾空白必须被忽略**：`status=" open "` 与 `status="open"`
+  必须返回相同结果。空白归一化只作用于**入参**，不修改记录自身的 `status` 字段，
+  也不改变大小写语义（`"OPEN"` 不等于 `"open"`）。
+
+## 4. 验收标准
+
+- **A1** 不传状态 → 返回 5 条记录。
+- **A2** `status="open"` → 返回 3 条记录（T-001、T-002、T-004）。
+- **A3** `status="closed"` → 返回 2 条记录（T-003、T-005）。
+- **A4** `status=" open "` → 与 `status="open"` 结果完全相同（3 条记录）。
+- **A5** `status=" closed "` → 与 `status="closed"` 结果完全相同（2 条记录）。
+
+## 5. 范围外
+
+- 状态的持久化、状态与外部系统的同步。
+- 分页、排序、模糊匹配。
+- 记录自身 `status` 字段的清洗或改写。
+
+已归档的旧版本规格：
+  - minimax-spec version=None 来源=/Users/yaoyi/Desktop/oceanbase/PowerContext-Competition/minimax/README.md
+  - minimax-spec-v1 version=v1 来源=/Users/yaoyi/Desktop/oceanbase/PowerContext-Competition/minimax/SPEC.md
+
+## 2. 相关代码
+source_id: minimax-code-7a91e0ca
+来源:      /Users/yaoyi/Desktop/oceanbase/PowerContext-Competition/minimax/task_status.py
+
+"""Minimal business sample for the MiniMax track.
+
+A small task board backed by a fixed set of records. The business rule is
+"filter records by status":
+
+* a legal status (``open`` / ``closed``) selects exactly the records carrying
+  that status;
+* omitting the status returns every record.
+
+This module keeps the original behaviour on purpose. Status values are
+compared verbatim, so surrounding whitespace is *not* stripped yet. The
+whitespace gap is captured by the target test in ``test_task_status.py``.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Optional
+
+#: Status values the board considers legal.
+LEGAL_STATUSES = ("open", "closed")
+
+
+@dataclass(frozen=True)
+class TaskRecord:
+    """A single task row on the board."""
+
+    task_id: str
+    title: str
+    status: str
+
+
+#: The fixed record set the sample operates on.
+RECORDS: tuple[TaskRecord, ...] = (
+    TaskRecord("T-001", "Rebuild pricing index", "open"),
+    TaskRecord("T-002", "Rotate signing keys", "open"),
+    TaskRecord("T-003", "Archive Q3 receipts", "closed"),
+    TaskRecord("T-004", "Patch checkout timeout", "open"),
+    TaskRecord("T-005", "Retire legacy endpoint", "closed"),
+)
+
+
+def list_tasks(status: Optional[str] = None) -> list[TaskRecord]:
+    """Return the records matching ``status``.
+
+    ``status=None`` returns every record. Any other value is compared with
+    ``==`` against the status of each record, so only the exact status string
+    matches.
+
+    The comparison is verbatim: ``" open "`` does not match ``"open"``.
+    """
+    if status is None:
+        return list(RECORDS)
+    return [record for record in RECORDS if record.status == status]
+
+## 3. 目标测试
+source_id: minimax-test-6f735a5a
+来源:      /Users/yaoyi/Desktop/oceanbase/PowerContext-Competition/minimax/test_task_status.py
+
+def test_status_with_surrounding_whitespace_matches_trimmed_status() -> None:
+    """Target: ``" open "`` must select the same records as ``"open"``.
+
+    This currently fails: the comparison is verbatim, so ``" open "`` selects
+    nothing. Fixing it is intentionally out of scope for this step.
+    """
+    assert list_tasks(" open ") == list_tasks("open")
+
+
+## 4. 回归测试
+def test_list_tasks_without_status_returns_every_record() -> None:
+    """Regression: omitting the status returns the full record set."""
+    result = list_tasks()
+
+    assert [record.task_id for record in result] == [
+        "T-001",
+        "T-002",
+        "T-003",
+        "T-004",
+        "T-005",
+    ]
+    assert result == list(RECORDS)
+
+def test_list_tasks_with_open_status_returns_only_open_records() -> None:
+    """Regression: a legal status selects exactly the matching records."""
+    result = list_tasks("open")
+
+    assert result == [
+        TaskRecord("T-001", "Rebuild pricing index", "open"),
+        TaskRecord("T-002", "Rotate signing keys", "open"),
+        TaskRecord("T-004", "Patch checkout timeout", "open"),
+    ]
+    assert all(record.status == "open" for record in result)
+
+def test_list_tasks_with_closed_status_returns_only_closed_records() -> None:
+    """Regression: the other legal status behaves the same way."""
+    result = list_tasks("closed")
+
+    assert result == [
+        TaskRecord("T-003", "Archive Q3 receipts", "closed"),
+        TaskRecord("T-005", "Retire legacy endpoint", "closed"),
+    ]
+    assert all(record.status == "closed" for record in result)
+
+def test_list_tasks_returns_a_new_list_each_call() -> None:
+    """Regression: callers cannot mutate the shared record set."""
+    first = list_tasks()
+    first.clear()
+
+    assert len(list_tasks()) == len(RECORDS)
+
+
+## 5. 任务状态（PowerContext Memory）
+ * art_551d73f5bd0b4280bc780f1987422ea8 rev=1 state=active: 目标测试失败，待修复
+
+== summary ==
+  spec    : minimax-spec-v2 version=v2
+           path=/Users/yaoyi/Desktop/oceanbase/PowerContext-Competition/minimax/SPEC.md
+  code    : minimax-code-7a91e0ca
+           path=/Users/yaoyi/Desktop/oceanbase/PowerContext-Competition/minimax/task_status.py
+  test    : minimax-test-6f735a5a
+           path=/Users/yaoyi/Desktop/oceanbase/PowerContext-Competition/minimax/test_task_status.py
+  target  : test_status_with_surrounding_whitespace_matches_trimmed_status
+  regress : test_list_tasks_without_status_returns_every_record, test_list_tasks_with_open_status_returns_only_open_records, test_list_tasks_with_closed_status_returns_only_closed_records, test_list_tasks_returns_a_new_list_each_call
+  * state  : rev=1 state=active — 目标测试失败，待修复
+EXIT_CODE=0

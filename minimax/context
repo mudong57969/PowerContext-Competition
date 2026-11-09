@@ -1,0 +1,35 @@
+#!/bin/sh
+# `context` — assemble the working context for the MiniMax sample.
+#
+# Thin wrapper so the command can be run as `minimax/context` from the
+# repository root. All arguments are forwarded to context.py.
+#
+# Interpreter resolution (first hit wins) — every candidate below is either an
+# explicit override or a path relative to this script, so the wrapper stays
+# portable across machines and checkouts:
+#
+#   1. $MINIMAX_PYTHON                     — explicit override
+#   2. <repo>/minimax/.venv/bin/python     — virtualenv inside the package
+#   3. <repo>/.venv/bin/python             — virtualenv at the repository root
+#   4. python3                             — whatever is on PATH
+#
+# To use the virtualenv you just created, either export MINIMAX_PYTHON or
+# create it at one of the two locations above:
+#
+#   export MINIMAX_PYTHON="$VENV/bin/python"
+set -eu
+
+DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO="$(dirname "$DIR")"
+
+if [ -n "${MINIMAX_PYTHON:-}" ]; then
+  PYTHON="$MINIMAX_PYTHON"
+elif [ -x "$DIR/.venv/bin/python" ]; then
+  PYTHON="$DIR/.venv/bin/python"
+elif [ -x "$REPO/.venv/bin/python" ]; then
+  PYTHON="$REPO/.venv/bin/python"
+else
+  PYTHON="python3"
+fi
+
+exec "$PYTHON" "$DIR/context.py" "$@"
