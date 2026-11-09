@@ -13,7 +13,8 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-from pypdf import PdfReader
+from pypdf import PageObject, PdfReader
+from pypdf.errors import PdfReadError
 from typing_extensions import override
 
 from powercontext.builtin.runtime.models import GetMemoryEntryRequest, SearchMemoryRequest
@@ -54,18 +55,48 @@ class PDFPageInput(BaseModel):
     _nonblank_id = field_validator("document_id")(PDFDocumentInput.nonblank_id.__func__)
 
 
+def _extract_page_text(page: PageObject) -> str:
+    plain = (page.extract_text(extraction_mode="plain") or "").strip()
+    lines = [line.strip() for line in plain.splitlines() if line.strip()]
+    fragments = sum(re.fullmatch(r"[A-Za-z]{1,3}", line) is not None for line in lines)
+    # Some PDFs position fragments independently, so plain extraction puts
+    # most of a prose page on separate one-to-three-letter lines.
+    if fragments < 40 or fragments * 2 < len(lines):
+        return plain
+
+    layout = (page.extract_text(extraction_mode="layout") or "").strip()
+    # Layout can omit rotated text. Accept whitespace changes and reordering
+    # only if every non-whitespace character is still accounted for.
+    if Counter(c for c in layout if not c.isspace()) == Counter(c for c in plain if not c.isspace()):
+        return layout
+    return plain
+
+
 def parse_pdf_document(value: PDFDocumentInput) -> tuple[PDFPageInput, ...]:
     """Extract every physical page atomically, including genuinely blank pages.
 
-    Plain extraction preserves all text-showing operations without layout mode's
-    rotated-text exclusion. Whitespace is not a page-quality metric.
+    Use plain extraction first and try layout only for severely fragmented pages.
     """
     raw = value.content
     if not raw.startswith(b"%PDF-") or b"%%EOF" not in raw[-2048:]:
         raise ValueError("incomplete PDF header or trailer")  # noqa: TRY003
     digest = hashlib.sha256(raw).hexdigest()
     try:
-        reader = PdfReader(io.BytesIO(raw), strict=True)
+        try:
+            reader = PdfReader(io.BytesIO(raw), strict=True)
+        except PdfReadError:
+            # Some linearized PDFs point at the CRLF before the xref table.
+            # Retry only that offset correction, keeping strict validation.
+            marker = re.search(rb"startxref\s+(\d+)\s+%%EOF\s*$", raw[-2048:])
+            if marker is None:
+                raise
+            offset = int(marker[1])
+            corrected = str(offset + 2).encode("ascii")
+            if raw[offset : offset + 7] != b"\r\nxref\r" or len(corrected) != len(marker[1]):
+                raise
+            tail_start = max(0, len(raw) - 2048)
+            repaired = raw[:tail_start + marker.start(1)] + corrected + raw[tail_start + marker.end(1):]
+            reader = PdfReader(io.BytesIO(repaired), strict=True)
         if reader.is_encrypted and not reader.decrypt(""):
             raise ValueError("PDF requires a user password")  # noqa: TRY003, TRY301
         # Materialize the entire page tree before extracting any page.
@@ -77,7 +108,7 @@ def parse_pdf_document(value: PDFDocumentInput) -> tuple[PDFPageInput, ...]:
                 document_id=value.document_id,
                 document_sha256=digest,
                 page_number=index,
-                text=(page.extract_text(extraction_mode="plain") or "").strip(),
+                text=_extract_page_text(page),
             )
             for index, page in enumerate(pages, 1)
         )
@@ -506,8 +537,13 @@ def _value_anchors(candidate: _Candidate, question: str) -> int:
         for alias in group:
             terms = _terms(alias)
             for i in range(len(text) - len(terms) + 1):
-                if text[i : i + len(terms)] == terms and any(
-                    t.isdigit() and not 1900 <= int(t) <= 2100 for t in text[i + len(terms) : i + len(terms) + 6]
+                if text[i : i + len(terms)] != terms:
+                    continue
+                nearby = text[i + len(terms) : i + len(terms) + 6]
+                # An adjacent number can be an account value even in the year range.
+                if any(
+                    token.isdigit() and (offset == 0 or not 1900 <= int(token) <= 2100)
+                    for offset, token in enumerate(nearby)
                 ):
                     matched = True
                     break
