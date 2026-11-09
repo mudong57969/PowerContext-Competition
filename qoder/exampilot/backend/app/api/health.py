@@ -15,6 +15,9 @@ router = APIRouter(prefix="/api", tags=["health"])
 @router.get("/health", response_model=HealthResponse)
 def health() -> HealthResponse:
     settings = get_settings()
+    # Public-health payload: internal details (PC address, DB path, model
+    # config) are deliberately omitted; the frontend only needs the
+    # boolean/status fields below.
     seekdb_status: dict = {
         "configured": bool(settings.seekdb_path),
         "ok": False,
@@ -31,12 +34,11 @@ def health() -> HealthResponse:
                 cur.fetchone()
                 seekdb_status["ok"] = True
                 seekdb_status["database"] = eng.database
-        except Exception as exc:  # noqa: BLE001 - probe reports engine errors
-            seekdb_status["error"] = str(exc)
+        except Exception:  # noqa: BLE001 - probe reports engine errors
+            seekdb_status["ok"] = False
     memory_service = get_memory_service()
     memory_status = {
         "enabled": memory_service.enabled,
-        "base_url": settings.powercontext_base_url,
         "reachable": memory_service.ping() if memory_service.enabled else False,
     }
     provider = get_embedding_provider()
@@ -46,7 +48,6 @@ def health() -> HealthResponse:
         "model": settings.embedding_model
         if settings.embedding_provider == "local"
         else settings.embedding_openai_model,
-        "dimension": settings.embedding_dimension,
     }
     llm_provider = get_llm_provider()
     llm_status = {

@@ -49,9 +49,9 @@ const json = (method: string, body?: unknown): RequestInit => ({
 export interface Health {
   status: string;
   version: string;
-  seekdb: { configured: boolean; ok: boolean; database: string | null; error?: string };
-  memory: { enabled: boolean; base_url: string; reachable: boolean };
-  embedding: { provider: string; enabled: boolean; model: string | null; dimension: number };
+  seekdb: { configured: boolean; ok: boolean; database: string | null };
+  memory: { enabled: boolean; reachable: boolean };
+  embedding: { provider: string; enabled: boolean; model: string | null };
   llm: { provider: string; enabled: boolean; model: string | null };
 }
 

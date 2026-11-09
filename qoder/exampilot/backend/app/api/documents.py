@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import threading
 from typing import Annotated
 
 from fastapi import APIRouter, File, Header, HTTPException, UploadFile
@@ -27,6 +28,20 @@ from app.services.documents import (
 )
 
 router = APIRouter(prefix="/api", tags=["documents"])
+
+_upload_slots: threading.BoundedSemaphore | None = None
+_upload_slots_lock = threading.Lock()
+
+
+def _upload_semaphore() -> threading.BoundedSemaphore:
+    global _upload_slots
+    if _upload_slots is None:
+        with _upload_slots_lock:
+            if _upload_slots is None:
+                _upload_slots = threading.BoundedSemaphore(
+                    get_settings().max_concurrent_uploads
+                )
+    return _upload_slots
 
 
 def _document_session(document_id: int) -> str:
@@ -74,31 +89,61 @@ def upload_documents(
     authorization: str | None = Header(default=None),
 ) -> UploadResponse:
     require_session(session_id, authorization)
+    # FastAPI spools multipart parts to temp files before this endpoint runs,
+    # so oversized bodies briefly use disk; the per-minute upload rate limit
+    # caps that exposure.
     settings = get_settings()
-    provider = get_embedding_provider()
-    results: list[DocumentOut] = []
-    for file in files:
-        filename = file.filename or "unnamed"
-        data = file.file.read()
-        if len(data) > settings.max_file_bytes:
-            results.append(
-                DocumentOut(
-                    filename=filename,
-                    ok=False,
-                    error=f"file too large (max {settings.max_file_bytes // (1024 * 1024)} MB)",
-                )
-            )
-            continue
-        outcome = process_upload(
-            session_id,
-            filename,
-            data,
-            provider,
-            settings.classify_high_confidence,
-            settings.classify_mid_confidence,
+    if len(files) > settings.max_upload_files:
+        raise HTTPException(
+            status_code=413,
+            detail=(f"too many files in one upload (max {settings.max_upload_files})"),
         )
-        results.append(_to_out(outcome))
-    return UploadResponse(session_id=session_id, results=results)
+    if not _upload_semaphore().acquire(blocking=False):
+        raise HTTPException(
+            status_code=429,
+            detail="too many concurrent uploads; please retry shortly",
+        )
+    try:
+        provider = get_embedding_provider()
+        results: list[DocumentOut] = []
+        total_bytes = 0
+        for file in files:
+            filename = file.filename or "unnamed"
+            data = file.file.read(settings.max_file_bytes + 1)
+            total_bytes += len(data)
+            if total_bytes > settings.max_upload_total_bytes:
+                raise HTTPException(
+                    status_code=413,
+                    detail=(
+                        "upload total too large "
+                        f"(max {settings.max_upload_total_bytes // (1024 * 1024)} "
+                        "MB per request)"
+                    ),
+                )
+            if len(data) > settings.max_file_bytes:
+                results.append(
+                    DocumentOut(
+                        filename=filename,
+                        ok=False,
+                        error=(
+                            "file too large "
+                            f"(max {settings.max_file_bytes // (1024 * 1024)} MB)"
+                        ),
+                    )
+                )
+                continue
+            outcome = process_upload(
+                session_id,
+                filename,
+                data,
+                provider,
+                settings.classify_high_confidence,
+                settings.classify_mid_confidence,
+            )
+            results.append(_to_out(outcome))
+        return UploadResponse(session_id=session_id, results=results)
+    finally:
+        _upload_semaphore().release()
 
 
 @router.get("/sessions/{session_id}/documents", response_model=list[DocumentOut])

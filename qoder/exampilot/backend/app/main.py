@@ -11,6 +11,7 @@ from fastapi.responses import JSONResponse
 
 from app import __version__
 from app.core.config import get_settings
+from app.core.ratelimit import RateLimitMiddleware
 from app.core.seekdb import SeekDBUnavailableError, configure, get_engine
 from app.models.schema import create_all_tables
 
@@ -46,6 +47,9 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# CORSMiddleware must be added LAST (outermost): rate-limit 429 and oversized
+# body 413 responses must pass back through it so browsers can read the error.
+app.add_middleware(RateLimitMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=get_settings().cors_origin_list,

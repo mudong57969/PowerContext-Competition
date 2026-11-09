@@ -42,6 +42,25 @@ class Settings(BaseSettings):
     max_upload_files: int = 50
     max_file_bytes: int = 50 * 1024 * 1024
 
+    # Upload resource protection
+    max_upload_total_bytes: int = 100 * 1024 * 1024
+    max_concurrent_uploads: int = 4
+
+    # Request body cap for JSON endpoints (multipart uploads are excluded;
+    # they are bounded by max_file_bytes / max_upload_total_bytes instead)
+    max_json_body_bytes: int = 2 * 1024 * 1024
+
+    # Rate limiting (sliding window, per client IP / minute)
+    rate_limit_enabled: bool = True
+    rate_limit_trust_proxy_headers: bool = False
+    rate_limit_per_minute_global: int = 600
+    rate_limit_per_minute_create_identity: int = 20
+    rate_limit_per_minute_upload: int = 30
+    rate_limit_per_minute_search: int = 60
+    rate_limit_per_minute_explain: int = 20
+    rate_limit_per_minute_practice: int = 60
+    rate_limit_per_minute_memories: int = 30
+
     # Classification thresholds (configurable, calibrated via tests)
     classify_high_confidence: float = 0.65
     classify_mid_confidence: float = 0.45
