@@ -26,7 +26,32 @@ PowerContext 恢复了什么、验收条件与证据文件的对应关系）。
 | `change/` | 本次修改的输入上下文、diff、修改记录 |
 | `snapshot/pre-fix/` | 修复前的代码快照（用于复现修复前的失败） |
 | `logs/` | 安装、启动、导入、写入、查询、读取、测试、复跑的全部运行记录 |
+| `evidence/` | **开发证据**：模型实际修改代码的原始会话记录（已脱敏） |
 | `TECH-NOTE.md` | 一页技术说明 + 验收条件对照表 |
+
+---
+
+## 开发证据（模型实际修改的原始记录）
+
+`evidence/` 是从本机会话记录**只读导出**的原始证据，已按 `evidence/SHA256SUMS` 中的规则做路径与凭据脱敏：
+
+| 文件 | 提供什么证据 |
+| --- | --- |
+| `evidence/minimax-edit-session.md` | **可读会话实录**：MiniMax-M3.1-Flash 实际代码修改的可读会话实录。28 条事件（15 次工具调用 + 13 条结果），按原始顺序保留 `message_id`、`turn_id`、时间戳、模型标识与工具输出全文 |
+| `evidence/minimax-edit-excerpt.json` | **机器可核验事件**：包含模型标识、工具调用、修改结果及交叉验证记录。附保真校验（28/28 PASS：逐条回查原件重新脱敏后逐字节比对）与 7 项一致性核对（7/7 PASS） |
+| `evidence/SHA256SUMS` | **校验与规则**：原始与导出文件哈希、筛选和脱敏规则 |
+
+### 原始模型编辑记录 ↔ 仓库内证据
+
+| 原始会话记录（`evidence/`） | 对应仓库证据 |
+| --- | --- |
+| seq 15 / seq 17：两次 `edit` 工具调用（含完整 `old_string` / `new_string`） | [`change/task_status.diff`](change/task_status.diff) 的对应 hunk |
+| seq 11–12：`context --emit-context` 生成实际开发上下文 | [`change/input-context.md`](change/input-context.md)（本次修改的输入） |
+| seq 1–3：修改前运行测试失败（`4 passed, 1 failed`，退出码 1） | [`logs/test-before-fix.log`](logs/test-before-fix.log) |
+| seq 21–22：修改后运行测试全过（`5 passed, 0 failed`，退出码 0） | [`logs/test-after-fix.log`](logs/test-after-fix.log) |
+| seq 27–28：通过 PowerContext 写入「已修复」状态 | [`logs/remember-state-after-fix.log`](logs/remember-state-after-fix.log) |
+
+> Git 提交的作者是提交者本人；**模型归属由 `evidence/` 的会话记录证明**（每条助手消息都带 `MiniMax-M3.1-Flash` 模型标识与工具调用原文）。
 
 ---
 

@@ -1,0 +1,42 @@
+# MiniMax 比赛开发证据 —— 文件校验与导出规则
+
+# 原始会话文件（只读；导出器以 'r'/'rb' 打开，从未写入）
+d620945766abea9c2605d63cd61454dc935ad70180c3917b9e98f9a084c69de0  source:messages.jsonl  bytes=2022046 （导出时读取值；messages.jsonl 是活跃会话的追加写文件，会随本对话继续增长）
+88c2f0bc2b48c693258b469bcc2479afd76a25027c50adcc62001b008b51655e  source:llm-call.json  bytes=104528
+0f7d078a0dfd3264216a0cb9bc7baa462efc1d464f396cf240c9c778da73f5ab  source:manifest.json  bytes=1094
+
+# 导出文件
+c169db07157f03ac866d9405511771aba5142fd5df0144566a3337d22140dbc8  export:minimax-edit-session.md
+ef3246a2882513d960ba13a33b55ab46879b061f753e09a9b47675ba2d4f407e  export:minimax-edit-excerpt.json
+# (本文件自身哈希无法内含，见下方说明)
+
+# 筛选规则
+# 1. R1 核心 turn 的用户任务指令（剔除 harness 注入的 system-reminder）
+# 2. R2 核心 turn 内与 SDD 修改直接相关的工具调用及其参数原文（edit×2 / SPEC v1+v2 写入与 v2 导入 / 上下文生成与校验 / diff 落盘 / 修复后测试 / 修复后代码入库 / 状态写入）
+# 3. R3 与 R2 调用按 toolCallId 关联的执行结果（原样保留，仅脱敏）
+# 4. R4 修改前失败基线：更早 turn 中首次失败运行（4 passed, 1 failed）与 minimax/logs/test-before-fix.log 的落盘输出
+# 5. R5 排除：该会话其余全部记录（竞赛说明阅读、评审复跑、文档撰写、审计回合、接口探查等）与任何不相关配置
+
+# 脱敏规则
+# 仓库根目录的绝对路径（用户主目录下的项目目录） -> <REPO>
+# 独立虚拟环境目录 -> <VENV>
+# 其余绝对个人路径（用户主目录下的路径） -> <HOME>/…
+# 临时运行目录 /private/tmp|/tmp 下的评审实例目录 -> <TMPDIR>/…<RUN>
+# 用户名与主机名（用户名@主机.local、主机名、文件属主列） -> <user>@<host> / <host> / <owner>
+# Git 提交作者名与 GitHub 仓库属主 -> <git-author> / <repo-owner>
+# Bearer token / api key / secret / password / Cookie / Authorization 头 -> [REDACTED-*]
+
+# 保真校验
+# {"method": "对每条导出记录，用 message_id / tool_call_id 回查实时原件并重新脱敏后逐字节比对", "events_checked": 28, "verified_identical": 28, "mismatched_seq": [], "result": "PASS"}
+
+# 一致性核对
+# PASS  diff 文件存在且含关键改动行  (minimax/change/task_status.diff)
+# PASS  input-context.md 含规格 v2 的空白条款（R5/A4）  (minimax/change/input-context.md)
+# PASS  input-context.md 含目标测试与回归测试  (minimax/change/input-context.md)
+# PASS  test-before-fix.log 记录 4 passed / 1 failed 且退出码 1  (minimax/logs/test-before-fix.log)
+# PASS  test-after-fix.log 记录 5 passed / 0 failed 且退出码 0  (minimax/logs/test-after-fix.log)
+# PASS  前后日志记录的代码哈希与仓库文件一致  (sha256(task_status.py)=d6c12a95…)
+# PASS  修复前快照与当前实现不同（确有代码修改）  (7a91e0ca… ≠ d6c12a95…)
+
+# 说明
+# SHA256SUMS 自身的哈希需在提交前由提交方计算（文件内无法自含）。

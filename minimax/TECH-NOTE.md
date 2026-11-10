@@ -111,6 +111,9 @@ prepared context: status=ready 含当前状态=True
 | 5 | 写入「已修复」后新进程读回并使用该状态，能区分「待修复」 | `python3 minimax/remember_state.py "目标测试已修复：…"` → `python3 minimax/context.py`（再跑一次） | 新 PID 输出 `[当前状态] … 已修复`、`含当前状态=True`，旧状态为 `forgotten` | `logs/review/09-remember-state.log`、`logs/review/10-context-state.log` |
 | 6 | 实例隔离且零凭据 | `doctor --server-url "$POWERCONTEXT_URL"` 检查同一端口；`grep -riE 'token\|password\|secret\|bearer' minimax/logs minimax/README.md` | doctor 指向同一端口；扫描无真实凭据 | `logs/review/02-doctor.log`、`logs/review/11-isolation-and-credentials.log` |
 
+> 上表的「证据文件」是**仓库内可复跑的产物**；模型**原始的编辑过程**（谁、在哪一次调用里、改了什么）
+> 由 [`evidence/`](evidence/) 单独证明，索引见 [§5 开发证据索引](#5-开发证据索引)。
+
 ### 规格自身的验收标准（A1–A5）→ 对应测试
 
 | 规格条目 | 内容 | 对应测试 |
@@ -125,7 +128,32 @@ prepared context: status=ready 含当前状态=True
 
 ---
 
-## 5. 已知边界
+## 5. 开发证据索引
+
+`evidence/` 是从本机会话记录**只读导出**的原始证据，导出规则与哈希见 [`evidence/SHA256SUMS`](evidence/SHA256SUMS)：
+
+| 文件 | 提供什么证据 |
+| --- | --- |
+| [`evidence/minimax-edit-session.md`](evidence/minimax-edit-session.md) | **MiniMax-M3.1-Flash 实际代码修改的可读会话实录**。28 条事件（15 次工具调用 + 13 条结果），按原始顺序保留 `message_id`、`turn_id`、时间戳、模型标识与工具输出全文 |
+| [`evidence/minimax-edit-excerpt.json`](evidence/minimax-edit-excerpt.json) | **机器可核验事件**：包含模型标识、工具调用、修改结果及交叉验证记录。附保真校验（28/28 PASS：逐条回查原件重新脱敏后逐字节比对）与 7 项一致性核对（7/7 PASS） |
+| [`evidence/SHA256SUMS`](evidence/SHA256SUMS) | **原始与导出文件哈希、筛选和脱敏规则** |
+
+### 原始模型编辑记录 ↔ 仓库内证据
+
+| 原始会话记录（`evidence/`） | 对应仓库证据 |
+| --- | --- |
+| seq 15 / seq 17：两次 `edit` 工具调用（含完整 `old_string` / `new_string`） | [`change/task_status.diff`](change/task_status.diff) 的对应 hunk |
+| seq 11–12：`context --emit-context` 生成实际开发上下文 | [`change/input-context.md`](change/input-context.md)（本次修改的输入） |
+| seq 1–3：修改前运行测试失败（`4 passed, 1 failed`，退出码 1） | [`logs/test-before-fix.log`](logs/test-before-fix.log) |
+| seq 21–22：修改后运行测试全过（`5 passed, 0 failed`，退出码 0） | [`logs/test-after-fix.log`](logs/test-after-fix.log) |
+| seq 27–28：通过 PowerContext 写入「已修复」状态 | [`logs/remember-state-after-fix.log`](logs/remember-state-after-fix.log) |
+
+> Git 提交的作者是提交者本人；**模型归属由 `evidence/` 的会话记录证明**（每条助手消息都带
+> `MiniMax-M3.1-Flash` 模型标识与工具调用原文）。
+
+---
+
+## 6. 已知边界
 
 - 未配置 generation / embedding model：显式记忆写入与检索可用，**依赖模型的自动抽取与语义检索**
   未启用；Server 启动时会打印相应提示。
