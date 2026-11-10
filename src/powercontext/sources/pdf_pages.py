@@ -59,9 +59,8 @@ def _extract_page_text(page: PageObject) -> str:
     plain = (page.extract_text(extraction_mode="plain") or "").strip()
     lines = [line.strip() for line in plain.splitlines() if line.strip()]
     fragments = sum(re.fullmatch(r"[A-Za-z]{1,3}", line) is not None for line in lines)
-    # Some PDFs position fragments independently, so plain extraction puts
-    # most of a prose page on separate one-to-three-letter lines.
-    if fragments < 40 or fragments * 2 < len(lines):
+    # Symbol-only leaders can outnumber the text lines in a fragmented table.
+    if fragments < 40 or fragments * 2 < sum(any(char.isalnum() for char in line) for line in lines):
         return plain
 
     # Fragmented pages need a finer spacing grid to retain word boundaries.

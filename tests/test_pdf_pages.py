@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any, ParamSpec, cast
 
 import pytest
 from pydantic import ValidationError
-from pypdf import PdfWriter
+from pypdf import PageObject, PdfWriter
 from pypdf.generic import DecodedStreamObject, DictionaryObject, NameObject
 
 from powercontext.sources import SourceDefinitionRegistry, SourceMaterialization, project_source_for_transport
@@ -61,6 +61,28 @@ def pdf_bytes(texts: tuple[str, ...], *, password: str | None = None) -> bytes:
     buffer = io.BytesIO()
     writer.write(buffer)
     return buffer.getvalue()
+
+
+def test_symbol_fillers_do_not_mask_fragmented_text(monkeypatch):
+    fragmented = "\n".join(["Rev", "enu", "e"] * 20 + ["...."] * 100)
+    directory = "\n".join(["Sales overview ........ 12"] * 60)
+    table = "\n".join(["USD"] * 40 + ["2024", "12345"] * 30 + ["...."] * 100)
+    repaired = "\n".join(["Revenue"] * 20 + ["...."] * 100)
+    raw = pdf_bytes((fragmented, directory, table))
+    extract_text = PageObject.extract_text
+
+    def extract(page, *args, **kwargs):
+        plain = extract_text(page, extraction_mode="plain").strip()
+        if kwargs.get("extraction_mode") != "layout":
+            return plain
+        if plain == fragmented:
+            return repaired
+        # Preserve characters while making a spurious layout switch observable.
+        return plain.replace("\n", " ")
+
+    monkeypatch.setattr(PageObject, "extract_text", extract)
+    pages = parse_pdf_document(PDFDocumentInput(document_id="report", content=raw))
+    assert [page.text for page in pages] == [repaired, directory, table]
 
 
 def test_parse_all_physical_pages_digest_and_numbers():
