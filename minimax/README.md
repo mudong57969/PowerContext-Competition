@@ -63,9 +63,12 @@ macOS / Linux 支持；Windows 下嵌入式 seekDB 不可用。
 ### 1. 准备代码目录
 
 ```bash
-git clone <本仓库> ~/work/minimax-sample
+mkdir -p ~/work
+git clone --branch feature/minimax-sdd-context https://github.com/mudong57969/PowerContext-Competition.git ~/work/minimax-sample
 cd ~/work/minimax-sample
 ```
+
+本样例位于仓库的 `minimax/` 目录下；仓库根目录下的 `dify/`、`gaode/`、`qoder/`、`stepfun/` 属于其他参赛方，与本样例无关。
 
 ### 2. 建独立虚拟环境并安装
 
